@@ -133,8 +133,23 @@
             - Mac / Linux 安装 NVM 方式
                 - ```curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.1/install.sh | bash```
             - 由于 Windows 和 Mac / Linux 的安装方式不同
-            - [Windows 安装 NVM](https://github.com/coreybutler/nvm-windows)
-            - [nvm介绍 安装 及使用](https://www.jianshu.com/p/d0e0935b150a)
+                - [《nvm-windows github》Windows 安装 NVM](https://github.com/coreybutler/nvm-windows)
+                - [nvm介绍 安装 及使用](https://www.jianshu.com/p/d0e0935b150a)
+    - 如何使用 NVM
+        ```shell
+        nvm ls              #查看本地安装的node版本
+        nvm install stable  # 安装最新稳定版 node，现在是 5.0.0
+        nvm install 4.2.2   # 安装 4.2.2 版本
+        nvm install 0.12.7  # 安装 0.12.7 版本
+
+        # 特别说明：以下模块安装仅供演示说明，并非必须安装模块
+        nvm use 4           # 切换至 4.2.2 版本
+        npm install -g mz-fis # 安装 mz-fis 模块至全局目录，安装完成的路径是 /Users/<你的用户名>/.nvm/versions/node/v0.12.7/lib/mz-fis
+        nvm use 0           # 切换至 0.12.7 版本
+        npm install -g react-native-cli #安装 react-native-cli 模块至全局目录，安装完成的路径是 /Users/<你的用户名>/.nvm/versions/node/v4.2.2/lib/react-native-cli
+
+        nvm alias default 0.12.7 #设置默认 node 版本为 0.12.7
+        ```
 
 4:15
 
