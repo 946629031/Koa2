@@ -126,7 +126,9 @@
     - https://node.green/
         - 查看 当前阶段 各个Node.js版本 对ECMA规范 实现的程度，及支持情况
     - NVM
-        - 本地如何管理 那么多的 Node.js 版本
+        - 问题：本地如何管理 那么多的 Node.js 版本？
+        - 什么是 NVM？
+            - Node.js版本管理工具
         - 使用 NVM 这个 Node.js版本管理工具
         - 如何安装 NVM ？
             - 到 github [搜索](https://github.com/search?o=desc&q=nvm&s=stars&type=Repositories)
@@ -151,7 +153,73 @@
         nvm alias default 0.12.7 #设置默认 node 版本为 0.12.7
         ```
 
-4:15
 
 - ## 1-3 毫不犹豫的使用promise
+    - Promises 官网
+        - https://www.promisejs.org/
+    - Promises 是什么？
+        - Promises 不是一个简单的语法糖
+        - 而是一个规范
+            - 如 bluebird 就实现了这个规范
+        - 各种各样的库 都可以去实现这套规范，进而向我们 提供Promises能力的接口 函数
+    - ### 1.在过去 我们使用 **回调方式**
+        ```js
+        const fs = require('fs')
+
+        // 1.回调方式
+        fs.readFile('./1-3 Promise.js', (err, data) =>{
+            if (err) throw err
+
+            console.log(data.toString())
+        })
+        ```
+    - ### 2.使用Promise 过渡时期 (2017左右)
+        ```js
+        const fs = require('fs')
+
+        function readFileAsync (path) {
+            return new Promise((resolve, reject) => {
+                fs.readFile(path, (err, data) => {
+                    if (err) reject(err)
+                    else resolve(data)
+                })
+            })
+        }
+
+        readFileAsync('./1-3 Promise.js')
+            .then(data => {
+                console.log(data.toString())
+            })
+            .catch(err => {
+                console.log(err)
+            })
+        ```
+        - 虽然这种写法 有点冗长，但是也没有什么弊端
+    - ### 3.现在 util 的 promisify
+        - Node.js 进入 v8.x 版本以后
+        - 我们就可以使用 nodejs util 模块提供的 promisify 让我们可以轻易的 包装一个 回调式的 Api ，让它直接支持 promise
+        ```js
+        const fs = require('fs')
+        const util = require('util')
+
+        util.promisify(fs.readFile)('./1-3 Promise.js')
+            .then(data => {
+                console.log(data.toString())
+            })
+            .catch(err => {
+                console.log(err)
+            })
+        ```
+        - 解释
+            - ```util.promisify()```
+                - 传入某一个回调函数，这里传入 fs.readFile ，fs.readFile 它本身是一个回调的异步函数
+            - ```util.promisify(fs.readFile)```
+                - 我们把这个函数包装之后，它会返回一个 promise function，再来调用
+            - ```util.promisify(fs.readFile)('./1-3 Promise.js')```
+                - 后面的这个 () 才是传参数
+        - 总结
+            - 优点：减少了代码量。将原来 promise 方法中的 20行代码，减少到 10行
+            - 在项目中遇到有 **回调处理异步的场景**，推荐大家 使用这种 promisify，来完成 从回调到 向promise 迁移到工作
+
+
 - ## 1-4 使用babel 编译es7 async function
