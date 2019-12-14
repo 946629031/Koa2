@@ -249,12 +249,12 @@
 
 # 第2章 必会 ES6-7 语法特性与规范
 - ## 2-1 生成器函数 Iterator迭代器？
-    - generator function
+    - 1.generator function
         - generator function 是 ES6 新增的特性，node.js v4.x 版本后就可以直接使用了
         - generator function 的核心是 ```generator 生成器```
         - ```generator 生成器``` 的本质是 ```Iterator 迭代器```
         - 所以我们先要理解，什么是 ```Iterator 迭代器``` 这个概念
-    - ### 什么是 Iterator 迭代器？
+    - ### 2.什么是 Iterator 迭代器？
         - Iterator 迭代器
             - 跟 Promise 一样，并不是 某一个具体的语法 或者 对象
             - 它是一个 **协议**
@@ -292,15 +292,65 @@
             ```
             - 这是一个非常简易的 Iterator 迭代器
             
-    - ### Iterator 迭代器 特征
-            - 每一次迭代的值，都是跟上一次迭代的值 有关系的，它是处于上一个值，下一个序列中 即将被执行的链路
-            - 每一次迭代的值，都反映了 迭代器内部的状态
-            - 这些状态的组合 是一个完整的状态流程
-            - 我们通过 next 方法，依次拿到某个状态的值
-            - 迭代器内部 总有一个 next 方法，通过它 总能拿到一个对象
-            - 其中 value 是某一次迭代的结果，done 是当前是否迭代完成的标志
+        - ### Iterator 迭代器 特征
+                - 每一次迭代的值，都是跟上一次迭代的值 有关系的，它是处于上一个值，下一个序列中 即将被执行的链路
+                - 每一次迭代的值，都反映了 迭代器内部的状态
+                - 这些状态的组合 是一个完整的状态流程
+                - 我们通过 next 方法，依次拿到某个状态的值
+                - 迭代器内部 总有一个 next 方法，通过它 总能拿到一个对象
+                - 其中 value 是某一次迭代的结果，done 是当前是否迭代完成的标志
+    - ### 3.generator 生成器
+        - 1.什么是 generator 生成器？
+            - 从字面意思来看，生成器 是能够生成 某一个东东 的东西
+            - ```generator 生成器函数``` 是一个可以 **返回迭代器** 的函数
+            - 我们本质上 来是在操作 迭代器
+            - 只不过 借助于生成器函数 来完成这个过程
+        - #### 2.generator 生成器 特征
+            - generator 生成器 比普通 function 多一个 * 星号
+            - 生成器 每一次迭代，都是通过 yield 关键字来实现
+        - 3.来看一下 如何使用 generator 生成器
+            ```js
+            function *makeIterator (arr) {
+                for (let i = 0; i < arr.length; i++) {
+                    yield arr[i]
+                }
+            }
+
+            const it = makeIterator(['吃饭', '睡觉', '打豆豆'])
+
+            console.log('首先', it.next().value)
+            console.log('其次', it.next().value)
+            console.log('然后', it.next().value)
+            console.log('最后', it.next().done)
+
+            // 打印结果
+            首先 吃饭
+            其次 睡觉
+            然后 打豆豆
+            最后 true
+            ```
+        - #### 4.总结
+                - 通过 generator 生成器，我们实现了 跟上面 Iterator 迭代器 一样的结果
+                - 生成器的出现，就是为了简化掉 我们以前需要 手写 这一大坨 返回的迭代器对象
+                - **生成器** 就是 为了更方便 我们使用 **迭代器** 而出现的
+                - 简化掉 我们手写 迭代器的过程
+                - 通过 yield 关键字，我们还能够做到 断点执行，一步一步调用 的效果
+            ```js
+            // 返回一个迭代器对象
+            return {
+                next: () => {
+                    // next() 方法返回的结果对象
+                    if (nextIndex < arr.length) {
+                        return { value: arr[nextIndex++], done: false }
+                    } else {
+                        return { done: true }
+                    }
+                }
+            }
+            ```
 
 
+            - [参考资料 《generator-认识生成器函数 - ES6 新语法入门 石川》](https://github.com/946629031/hello-ES6#13generator-%E8%AE%A4%E8%AF%86%E7%94%9F%E6%88%90%E5%99%A8%E5%87%BD%E6%95%B0)
 
 - ## 2-2 co 库执行 promise 和 generator function
 - ## 2-3 箭头函数 arrow function
