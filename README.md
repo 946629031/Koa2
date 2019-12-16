@@ -173,7 +173,7 @@
             console.log(data.toString())
         })
         ```
-    - ### 2.使用Promise 过渡时期 (2017左右)
+    - ### 2.使用Promise 过渡时期 ES6 (2015-2017左右)
         ```js
         const fs = require('fs')
 
@@ -245,7 +245,7 @@
         - 但是，也带来一些问题
             - 当你的运行环境不支持 这些前卫的新语法时，就会导致无法正确运行代码。
             - 如：你在node v4.x 或者 v6.x 版本中使用时
-        - 所以这个时候，就需要用到 babel 来编译，将这些 旧版本不支持的新语法，编译成 他们能够识别执行的语法
+        - 所以这个时候，就需要用到 babel 来编译, 将这些 旧版本不支持的新语法，编译成 他们能够识别执行的语法
 
 # 第2章 必会 ES6-7 语法特性与规范
 - ## 2-1 生成器函数 Iterator迭代器？
@@ -353,6 +353,49 @@
             - [参考资料 《generator-认识生成器函数 - ES6 新语法入门 石川》](https://github.com/946629031/hello-ES6#13generator-%E8%AE%A4%E8%AF%86%E7%94%9F%E6%88%90%E5%99%A8%E5%87%BD%E6%95%B0)
 
 - ## 2-2 co 库执行 promise 和 generator function
+    - ### 什么是 co ？
+        - https://github.com/tj/co
+        - co 是一个 js 库
+        - 由 tj 大神所贡献的，tj 活跃于 node.js社区、go社区 ... 很多编程语言社区
+        - co 是一个 function, 它试图把 所有传入的 参数，都转成 promise。 co 这个库 非常的单纯，就只是一个包装 和 转化 的作用
+        - 将接收到的参数，如 `数组、函数、generator function、对象 ...` 全都转成 promise
+    - 如何使用 co ？
+        ```js
+        const co = require('co')
+        const fetch = require('node-fetch') // node-fetch 用于异步请求数据
+
+        co(function *() {
+            const res = yield fetch('https://api.douban.com/v2/movie/subject/30261964?apikey=0df993c66c0c636e29ecbb5344252a4a')
+            const movie = yield res.json() // 将文本解析为 json
+            const summary = movie.summary
+
+            console.log('summary', summary)
+        })
+
+
+
+        // 打印结果
+        // summary 《古田军号》是庆祝中华人民共和国成立70周年献礼影片。影片用真诚的艺术表达和创新的手法，以一个红军小号手的视角，讲述了红军从井冈山突围到闽西期间，年轻的革命领袖带领年轻的红军，在绝境中探索真理，开辟了中国革命成功的非凡历程。
+        ```
+        - 上面代码解析
+            - co()  传入一个 generator function
+            - 题外话 res.json()
+                ```js
+                const movie = yield res.json() // 将文本解析为 json
+                ```
+                - `Body`  mixin 的 `json()` 方法接收一个 Response 流，并将其读取完成。它返回一个 Promise，Promise 的解析 resolve 结果是将文本体解析为 `JSON`。
+                - 参考链接 Body.json()  https://developer.mozilla.org/zh-CN/docs/Web/API/Body/json
+
+        - 总结
+            - 结合上节 和 现在的这个代码，我们可以非常直观的理解 `genertor function` 和 它内部的 `yield`
+            - 通过 yield 这种同步的方式，基本上就实现了 一个状态 或者 一个进程 **的暂停**
+            - 当 第一个 yield 没有执行完的时候，第二个 yield 是不会执行的，也就是说实现了一个 函数暂停
+            - #### co 的意义
+                - co 这个函数，让里面的每一个 暂停函数 ，都能够得到 一步一步的自动执行
+                - 也就是 实现了 generator function 的自动执行
+
+            - 在上一节中，我们看到，generator function 必须手动调用 next ，才能继续往下执行
+            - 但是，我们有了 co，就能实现自动执行完 里面的 暂停函数了
 - ## 2-3 箭头函数 arrow function
 - ## 2-4 异步函数 asyunc function 统一世界
 - ## 2-5 借助 babel 编译 import 与 export

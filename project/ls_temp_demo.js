@@ -1,12 +1,10 @@
-function *makeIterator (arr) {
-    for (let i = 0; i < arr.length; i++) {
-        yield arr[i]
-    }
-}
+const co = require('co')
+const fetch = require('node-fetch') // node-fetch 用于异步请求数据
 
-const it = makeIterator(['吃饭', '睡觉', '打豆豆'])
+co(function *() {
+    const res = yield fetch('https://api.douban.com/v2/movie/subject/30261964?apikey=0df993c66c0c636e29ecbb5344252a4a')
+    const movie = yield res.json() // 将文本解析为 json，参考链接 Body.json()  https://developer.mozilla.org/zh-CN/docs/Web/API/Body/json
+    const summary = movie.summary
 
-console.log('首先', it.next().value)
-console.log('其次', it.next().value)
-console.log('然后', it.next().value)
-console.log('最后', it.next().done)
+    console.log('summary', summary)
+})
