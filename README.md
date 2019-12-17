@@ -158,6 +158,35 @@
     - Promises 官网
         - https://www.promisejs.org/
     - Promises 是什么？
+        - 问题来了，Promise是什么玩意呢？是一个类？对象？数组？函数？
+        - 别猜了，直接打印出来看看吧，console.dir(Promise)，就这么简单粗暴。
+        ```
+        ➡ console.dir(Promise)
+            ⬇ ƒ Promise()
+                ➡ all: ƒ all()
+                ➡ allSettled: ƒ allSettled()
+                    arguments: (...)
+                    caller: (...)
+                    length: 1
+                    name: "Promise"
+                ⬇ prototype: Promise
+                   ➡  catch: ƒ catch()
+                   ➡  constructor: ƒ Promise()
+                   ➡  finally: ƒ finally()
+                   ➡  then: ƒ then()
+                      Symbol(Symbol.toStringTag): "Promise"
+                   ➡  __proto__: Object
+                ➡ race: ƒ race()
+                ➡ reject: ƒ reject()
+                ➡ resolve: ƒ resolve()
+                  Symbol(Symbol.species): (...)
+                ➡ get Symbol(Symbol.species): ƒ [Symbol.species]()
+                ➡ __proto__: ƒ ()
+                ➡ [[Scopes]]: Scopes[0]
+        ```
+        - 这么一看就明白了，Promise是一个构造函数，自己身上有all、reject、resolve这几个眼熟的方法，原型上有then、catch等同样很眼熟的方法。这么说用Promise new出来的对象肯定就有then、catch方法喽，没错。
+
+        - 古人云：“君子一诺千金”，这种 `“承诺将来会执行”` 的对象在JavaScript中称为Promise对象。
         - Promises 不是一个简单的语法糖
         - 而是一个规范
             - 如 bluebird 就实现了这个规范
@@ -255,6 +284,7 @@
         - ```generator 生成器``` 的本质是 ```Iterator 迭代器```
         - 所以我们先要理解，什么是 ```Iterator 迭代器``` 这个概念
     - ### 2.什么是 Iterator 迭代器？
+        - 定义：迭代器是一个拥有 next() 方法的特殊对象，每次调用 next() 都返回一个结果对象
         - Iterator 迭代器
             - 跟 Promise 一样，并不是 某一个具体的语法 或者 对象
             - 它是一个 **协议**
@@ -320,21 +350,31 @@
                 // 之后所有的调用都会返回相同内容
                 console.log(iterator.next());  // "{ value: undefiend, done: true}"
                 ```
-                - 以上，我们通过调用createIterator()函数，返回一个对象，这个对象存在一个next()方法，当next()方法被调用时，返回格式{ value: 1, done: false}的结果对象。
-                - 因此，我们可以这么定义：迭代器是一个拥有next()方法的特殊对象，每次调用next()都返回一个结果对象。
-            
+                - 下面我们来调用 一下 迭代器
+                    ```js
+                    var colors = ["red", "green", "blue"];
+                    var iterator = createIterator(colors);
+                    while(!iterator.next().done){
+                        console.log(iterator.next().value);
+                    }
+                    ```
+                    - createIterator()只需写一次，就可以一直复用
         - ### Iterator 迭代器 特征
-                -以上，我们通过调用 makeIterator()函数，返回一个对象，这个对象存在一个next()方法，当next()方法被调用时，返回格式{ value: 1, done: false}的结果对象。
-                - 因此，我们可以这么定义：迭代器是一个拥有next()方法的特殊对象，每次调用next()都返回一个结果对象。
-                - 参考文章 [ES6系列---迭代器（Iterator）与生成器（Generator）](https://segmentfault.com/a/1190000010747122)
-                - 
-                - 
-                - 每一次迭代的值，都是跟上一次迭代的值 有关系的，它是处于上一个值，下一个序列中 即将被执行的链路
-                - 每一次迭代的值，都反映了 迭代器内部的状态
-                - 这些状态的组合 是一个完整的状态流程
-                - 我们通过 next 方法，依次拿到某个状态的值
-                - 迭代器内部 总有一个 next 方法，通过它 总能拿到一个对象
-                - 其中 value 是某一次迭代的结果，done 是当前是否迭代完成的标志
+            ```
+            - 以上，我们通过调用createIterator()函数，返回一个对象
+            - 这个对象存在一个next()方法
+            - 当next()方法被调用时，返回格式 { value: 1, done: false} 的结果对象。
+            - 因此，我们可以这么定义：迭代器是一个拥有next()方法的特殊对象，每次调用next()都返回一个结果对象。
+            ```
+            - 参考文章 [ES6系列---迭代器（Iterator）与生成器（Generator）](https://segmentfault.com/a/1190000010747122)
+            ```
+            - 每一次迭代的值，都是跟上一次迭代的值 有关系的，它是处于上一个值，下一个序列中 即将被执行的链路
+            - 每一次迭代的值，都反映了 迭代器内部的状态
+            - 这些状态的组合 是一个完整的状态流程
+            - 我们通过 next 方法，依次拿到某个状态的值
+            - 迭代器内部 总有一个 next 方法，通过它 总能拿到一个对象
+            - 其中 value 是某一次迭代的结果，done 是当前是否迭代完成的标志
+            ```
     - ### 3.generator 生成器
         - 1.什么是 generator 生成器？
             - ```generator 生成器函数``` 是一个可以 `生成迭代器` 的函数 (返回迭代器)
