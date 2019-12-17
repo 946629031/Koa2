@@ -285,7 +285,7 @@
 # 第2章 必会 ES6-7 语法特性与规范
 - ## 2-1 generator 生成器函数 Iterator迭代器？
     - 1.generator function
-        - generator function 是 ES6 新增的特性，node.js v4.x 版本后就可以直接使用了
+        - generator function 是ES6 新增的特性，node.js v4.x 版本后就可以直接使用了
         - generator function 的核心是 ```generator 生成器```
         - ```generator 生成器``` 的本质是 ```Iterator 迭代器```
         - 所以我们先要理解，什么是 ```Iterator 迭代器``` 这个概念
@@ -383,7 +383,7 @@
             ```
     - ### 3.generator 生成器
         - 1.什么是 generator 生成器？
-            - ```generator 生成器函数``` 是一个可以 `生成迭代器` 的函数 (返回迭代器)
+            - ```generator 生成器函数``` 是一个可以 `生成迭代器` 的函数 (返回迭代器)
             - 我们本质上 来是在操作 迭代器，只不过 借助于生成器函数 来完成这个过程
             - ES6引入了生成器对象，可以让创建迭代器的过程变得更加简单。
         - #### 2.generator 生成器 特征
@@ -466,7 +466,7 @@
         - 由 tj 大神所贡献的，tj 活跃于 node.js社区、go社区 ... 很多编程语言社区
         - co 是一个 function, 它试图把 所有传入的 参数，都转成 promise。 co 这个库 非常的单纯，就只是一个包装 和 转化 的作用
         - 将接收到的参数，如 `数组、函数、generator function、对象 ...` 全都转成 promise
-    - 2.如何使用 co ？
+    - ### 2.如何使用 co ？
         ```js
         const co = require('co')
         const fetch = require('node-fetch') // node-fetch 用于异步请求数据
@@ -498,11 +498,64 @@
             - 通过 yield 这种同步的方式，基本上就实现了 一个状态 或者 一个进程 **的暂停**
             - 当 第一个 yield 没有执行完的时候，第二个 yield 是不会执行的，也就是说实现了一个 函数暂停
             - #### 3.co 的意义
+                ```
                 - co 这个函数，让里面的每一个 暂停函数 ，都能够得到 一步一步的自动执行
                 - 也就是 实现了 generator function 的自动执行
+                ```
 
             - 在上一节中，我们看到，generator function 必须手动调用 next ，才能继续往下执行
             - 但是，我们有了 co，就能实现自动执行完 里面的 暂停函数了
+    - ### 3.如何理解 co ？
+        - 下面我们用 run() 函数 来模拟一下，co库 的内部执行过程，让大家直观的理解 co库 的内部是如何运作的
+        ```js
+        function run (generator) {
+            const iterator = generator()        // generator 执行的结果 是最终生成了一个 iterator 迭代器
+            const it = iterator.next()
+            const promise = it.value
+
+            promise.then(data => {
+                const it2 = iterator.next(data)
+                const promise2 = it2.value
+
+                promise2.then(data2 => {
+                    iterator.next(data2)
+                })
+            })
+        }
+
+        run(function *() {
+            const res = yield fetch('https://api.douban.com/v2/movie/subject/30261964?apikey=0df993c66c0c636e29ecbb5344252a4a')
+            const movie = yield res.json() // 将文本解析为 json，参考链接 Body.json()  https://developer.mozilla.org/zh-CN/docs/Web/API/Body/json
+            const summary = movie.summary
+
+            console.log('summary', summary)
+        })
+        ```
+        - 上面代码解析
+            ```
+            - 我们用 run() 函数 来模拟一下，co库 的内部执行过程，让大家直观的理解 co库 的内部是如何运作的
+            - run() 函数 里面，有两次 promise 分别对应 上面co() 函数中的两次 yield
+            - 着两段代码，执行的结果是一样，执行的过程是类似的
+            ```
+
+        - co() 内部的工作原理
+            ```
+            - 将传入的 generator function 转化成 iterator, 然后再将 iterator 转化成 promise
+            - 然后不断的 调用 promise.then() 直到所有的 promise 的链路都执行完毕
+            ```
+
+        - co 存在的意义：
+            ```
+            - 在这个例子中，只有两个 promise ，手写起来还可以接受，
+            - 但是 在其他情况下，如果 promise 多了的话，还需要手动去写 去调用，就基本不可能了 (要么就烦死)
+            - 但是 有了 co库 就不一样了，整个过程 被它自动化掉了，这就是 co 带给我们的便利
+            ```
+
+        - co 的缺点：
+            ```
+            - co 只能 yield 对象、数组、promise、generator、chunck function
+            - 不能 yield 字符串、布尔值
+            ```
 
 6:14
 

@@ -12,8 +12,9 @@ const fetch = require('node-fetch') // node-fetch 用于异步请求数据
 
 
 
+
 function run (generator) {
-    const iterator = generator()
+    const iterator = generator()        // generator 执行的结果 是最终生成了一个 iterator 迭代器
     const it = iterator.next()
     const promise = it.value
 
