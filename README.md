@@ -464,7 +464,12 @@
         - https://github.com/tj/co
         - co 是一个 js 库
         - 由 tj 大神所贡献的，tj 活跃于 node.js社区、go社区 ... 很多编程语言社区
+        ```
         - co 是一个 function, 它试图把 所有传入的 参数，都转成 promise。 co 这个库 非常的单纯，就只是一个包装 和 转化 的作用
+        - 用于 Generator 函数的自动执行
+        - co 函数库可以让你不用编写 Generator 函数的执行器
+        - co 会把 所有传入的 generator function 都转成 promise
+        ```
         - 将接收到的参数，如 `数组、函数、generator function、对象 ...` 全都转成 promise
     - ### 2.如何使用 co ？
         ```js
@@ -546,7 +551,7 @@
 
         - co 存在的意义：
             ```
-            - 在这个例子中，只有两个 promise ，手写起来还可以接受，
+            - 在这个例子中，只有两个 promise ，手写起来还可以接受，
             - 但是 在其他情况下，如果 promise 多了的话，还需要手动去写 去调用，就基本不可能了 (要么就烦死)
             - 但是 有了 co库 就不一样了，整个过程 被它自动化掉了，这就是 co 带给我们的便利
             ```
@@ -556,9 +561,6 @@
             - co 只能 yield 对象、数组、promise、generator、chunck function
             - 不能 yield 字符串、布尔值
             ```
-
-6:14
-
 
 - ## 2-3 箭头函数 arrow function
 - ## 2-4 异步函数 asyunc function 统一世界
