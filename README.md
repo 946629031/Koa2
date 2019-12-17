@@ -162,29 +162,33 @@
         - 别猜了，直接打印出来看看吧，console.dir(Promise)，就这么简单粗暴。
         ```
         ➡ console.dir(Promise)
-            ⬇ ƒ Promise()
-                ➡ all: ƒ all()
-                ➡ allSettled: ƒ allSettled()
+            ⬇ function Promise()
+                ➡ all: function all()
+                ➡ allSettled: function allSettled()
                     arguments: (...)
                     caller: (...)
                     length: 1
                     name: "Promise"
-                ⬇ prototype: Promise
-                   ➡  catch: ƒ catch()
-                   ➡  constructor: ƒ Promise()
-                   ➡  finally: ƒ finally()
-                   ➡  then: ƒ then()
+                ⬇ prototype: Promise
+                   ➡  catch: function catch()
+                   ➡  constructor: function Promise()
+                   ➡  finally: function finally()
+                   ➡  then: function then()
                       Symbol(Symbol.toStringTag): "Promise"
                    ➡  __proto__: Object
-                ➡ race: ƒ race()
-                ➡ reject: ƒ reject()
-                ➡ resolve: ƒ resolve()
+                ➡ race: function race()
+                ➡ reject: function reject()
+                ➡ resolve: function resolve()
                   Symbol(Symbol.species): (...)
-                ➡ get Symbol(Symbol.species): ƒ [Symbol.species]()
-                ➡ __proto__: ƒ ()
+                ➡ get Symbol(Symbol.species): function [Symbol.species]()
+                ➡ __proto__: function ()
                 ➡ [[Scopes]]: Scopes[0]
         ```
-        - 这么一看就明白了，Promise是一个构造函数，自己身上有all、reject、resolve这几个眼熟的方法，原型上有then、catch等同样很眼熟的方法。这么说用Promise new出来的对象肯定就有then、catch方法喽，没错。
+        - 这么一看就明白了
+            - Promise是一个构造函数
+            - 自己身上有 `all、reject、resolve` 这几个眼熟的方法
+            - 原型上有 `then、catch` 等同样很眼熟的方法。
+            - 这么说用Promise new出来的对象肯定就有then、catch方法喽，没错。
 
         - 古人云：“君子一诺千金”，这种 `“承诺将来会执行”` 的对象在JavaScript中称为Promise对象。
         - Promises 不是一个简单的语法糖
