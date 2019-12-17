@@ -1,37 +1,39 @@
-const co = require('co')
-const fetch = require('node-fetch') // node-fetch 用于异步请求数据
+const luke = {
+    id: 2,
+    say: function () {
+        setTimeout(function(){
+            console.log('id: ', this.id)
+        }, 50)
+    },
+    sayWithThis: function(){
+        let _this = this
 
-// co(function *() {
-//     const res = yield fetch('https://api.douban.com/v2/movie/subject/30261964?apikey=0df993c66c0c636e29ecbb5344252a4a')
-//     const movie = yield res.json() // 将文本解析为 json，参考链接 Body.json()  https://developer.mozilla.org/zh-CN/docs/Web/API/Body/json
-//     const summary = movie.summary
-
-//     console.log('summary', summary)
-// })
-
-
-
-
-
-function run (generator) {
-    const iterator = generator()        // generator 执行的结果 是最终生成了一个 iterator 迭代器
-    const it = iterator.next()
-    const promise = it.value
-
-    promise.then(data => {
-        const it2 = iterator.next(data)
-        const promise2 = it2.value
-
-        promise2.then(data2 => {
-            iterator.next(data2)
-        })
-    })
+        setTimeout(function(){
+            console.log('this id: ', _this.id)
+        }, 500)
+    },
+    sayWithArrow: function(){
+        setTimeout(() => {
+            console.log('arrow id: ', this.id)
+        }, 1500)
+    },
+    sayWithGlobalArrow: () => {
+        setTimeout(() => {
+            console.log('global arrow id: ', this.id)
+        }, 2000)
+    }
 }
 
-run(function *() {
-    const res = yield fetch('https://api.douban.com/v2/movie/subject/30261964?apikey=0df993c66c0c636e29ecbb5344252a4a')
-    const movie = yield res.json() // 将文本解析为 json，参考链接 Body.json()  https://developer.mozilla.org/zh-CN/docs/Web/API/Body/json
-    const summary = movie.summary
+luke.say()
+luke.sayWithThis()
+luke.sayWithArrow()
+luke.sayWithGlobalArrow()
 
-    console.log('summary', summary)
-})
+// 考察 对于箭头函数，this 作用域 的掌握程度
+
+
+// 打印结果
+// id:  undefined
+// this id:  2
+// arrow id:  2
+// global arrow id:  undefined

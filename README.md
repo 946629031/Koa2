@@ -528,6 +528,7 @@
             })
         }
 
+        // 调用 run函数
         run(function *() {
             const res = yield fetch('https://api.douban.com/v2/movie/subject/30261964?apikey=0df993c66c0c636e29ecbb5344252a4a')
             const movie = yield res.json() // 将文本解析为 json，参考链接 Body.json()  https://developer.mozilla.org/zh-CN/docs/Web/API/Body/json
@@ -535,6 +536,10 @@
 
             console.log('summary', summary)
         })
+
+        
+        // 打印结果
+        // summary 《古田军号》是庆祝中华人民共和国成立70周年献礼影片。影片用真诚的艺术表达和创新的手法，以一个红军小号手的视角，讲述了红军从井冈山突围到闽西期间，年轻的革命领袖带领年轻的红军，在绝境中探索真理，开辟了中国革命成功的非凡历程。
         ```
         - 上面代码解析
             ```
@@ -563,6 +568,71 @@
             ```
 
 - ## 2-3 箭头函数 arrow function
+    - ES6 中允许使用“箭头”（=>）定义函数
+    - ### 1.箭头函数的N种写法
+        ```js
+        const arrow = function (param) {}           // ES5 函数定义
+        const arrow = (param) => {}                 // ES6 中箭头函数
+        const arrow = param => {}                   // 如果只有一个 参数
+        const arrow = param => console.log(param)   // 如果函数内 只有一行代码
+        const arrow = param => ({param: param})     // 如果要返回一个对象
+        const arrow = (param1, param2) => {}        // 如果要传入多个参数
+
+        // {id: 1, movie: xxx}
+        const arrow = ({id, movie}) => {    // 如果传入的参数是一个 Object
+            console.log(id, movie)
+        }
+        ```
+    - ### 2.箭头函数的大杀器 —— this
+        ```js
+        const luke = {
+            id: 2,
+            say: function () {
+                setTimeout(function(){
+                    console.log('id: ', this.id)
+                }, 50)
+            },
+            sayWithThis: function(){
+                let _this = this
+
+                setTimeout(function(){
+                    console.log('this id: ', _this.id)
+                }, 500)
+            },
+            sayWithArrow: function(){
+                setTimeout(() => {
+                    console.log('arrow id: ', this.id)
+                }, 1500)
+            },
+            sayWithGlobalArrow: () => {
+                setTimeout(() => {
+                    console.log('global arrow id: ', this.id)
+                }, 2000)
+            }
+        }
+
+        luke.say()
+        luke.sayWithThis()
+        luke.sayWithArrow()
+        luke.sayWithGlobalArrow()
+
+        // 考察 对于箭头函数，this 作用域 的掌握程度
+
+
+        // 打印结果
+        // id:  undefined
+        // this id:  2
+        // arrow id:  2
+        // global arrow id:  undefined
+        ```
+    - ### 3.总结
+        ```
+        - 箭头函数 语法简洁
+        - this 指向函数定义时候 所属的作用域下，而不是运行时的作用域
+        - 这种作用域 更加可控、安全
+        ```
+
+
 - ## 2-4 异步函数 asyunc function 统一世界
 - ## 2-5 借助 babel 编译 import 与 export
 - ## 2-6 生产环境使用 babel 支持 es6-7
