@@ -12,7 +12,7 @@
     - [1-3 毫不犹豫的使用promise](#1-3-毫不犹豫的使用promise)
     - [1-4 使用babel 编译es7 async function](#1-4-使用babel-编译es7-async-function)
 - [第2章 必会 ES6-7 语法特性与规范](#第2章-必会-ES6-7-语法特性与规范)
-    - [2-1 生成器函数 Iterator迭代器？](#2-1-生成器函数-Iterator迭代器？)
+    - [2-1 generator 生成器函数 Iterator迭代器？](#2-1-generator-生成器函数-Iterator迭代器？)
     - [2-2 co 库执行 promise 和 generator function](#2-2-co-库执行-promise-和-generator-function)
     - [2-3 箭头函数 arrow function](#2-3-箭头函数-arrow-function)
     - [2-4 异步函数 asyunc function 统一世界](#2-4-异步函数-asyunc-function-统一世界)
@@ -248,7 +248,7 @@
         - 所以这个时候，就需要用到 babel 来编译, 将这些 旧版本不支持的新语法，编译成 他们能够识别执行的语法
 
 # 第2章 必会 ES6-7 语法特性与规范
-- ## 2-1 生成器函数 Iterator迭代器？
+- ## 2-1 generator 生成器函数 Iterator迭代器？
     - 1.generator function
         - generator function 是 ES6 新增的特性，node.js v4.x 版本后就可以直接使用了
         - generator function 的核心是 ```generator 生成器```
@@ -260,39 +260,75 @@
             - 它是一个 **协议**
             - 只要遵循这个 协议 所实现的，都是迭代器对象
         - 下面来手写一个 Iterator 迭代器
-            ```js
-            function makeIterator (arr) {
-                let nextIndex = 0
+            - 例1
+                ```js
+                function makeIterator (arr) {
+                    let nextIndex = 0
 
-                // 返回一个迭代器对象
-                return {
-                    next: () => {
-                        // next() 方法返回的结果对象
-                        if (nextIndex < arr.length) {
-                            return { value: arr[nextIndex++], done: false }
-                        } else {
-                            return { done: true }
+                    // 返回一个迭代器对象
+                    return {
+                        next: () => {
+                            // next() 方法返回的结果对象
+                            if (nextIndex < arr.length) {
+                                return { value: arr[nextIndex++], done: false }
+                            } else {
+                                return { done: true }
+                            }
                         }
                     }
                 }
-            }
 
-            const it = makeIterator(['吃饭', '睡觉', '打豆豆'])
+                const it = makeIterator(['吃饭', '睡觉', '打豆豆'])
 
-            console.log('首先', it.next().value)
-            console.log('其次', it.next().value)
-            console.log('然后', it.next().value)
-            console.log('最后', it.next().done)
+                console.log('首先', it.next().value)
+                console.log('其次', it.next().value)
+                console.log('然后', it.next().value)
+                console.log('最后', it.next().done)
 
-            // 打印结果
-            首先 吃饭
-            其次 睡觉
-            然后 打豆豆
-            最后 true
-            ```
-            - 这是一个非常简易的 Iterator 迭代器
+                // 打印结果
+                首先 吃饭
+                其次 睡觉
+                然后 打豆豆
+                最后 true
+                ```
+                - 这是一个非常简易的 Iterator 迭代器
+            - 例2
+                - 感受一下用ES5语法模拟创建一个迭代器：
+                ```js
+                function createIterator(items) {
+                    var i = 0;
+                    
+                    return { // 返回一个迭代器对象
+                        next: function() { // 迭代器对象一定有个next()方法
+                            var done = (i >= items.length);
+                            var value = !done ? items[i++] : undefined;
+                            
+                            return { // next()方法返回结果对象
+                                value: value,
+                                done: done
+                            };
+                        }
+                    };
+                }
+
+                var iterator = createIterator([1, 2, 3]);
+
+                console.log(iterator.next());  // "{ value: 1, done: false}"
+                console.log(iterator.next());  // "{ value: 2, done: false}"
+                console.log(iterator.next());  // "{ value: 3, done: false}"
+                console.log(iterator.next());  // "{ value: undefiend, done: true}"
+                // 之后所有的调用都会返回相同内容
+                console.log(iterator.next());  // "{ value: undefiend, done: true}"
+                ```
+                - 以上，我们通过调用createIterator()函数，返回一个对象，这个对象存在一个next()方法，当next()方法被调用时，返回格式{ value: 1, done: false}的结果对象。
+                - 因此，我们可以这么定义：迭代器是一个拥有next()方法的特殊对象，每次调用next()都返回一个结果对象。
             
         - ### Iterator 迭代器 特征
+                -以上，我们通过调用 makeIterator()函数，返回一个对象，这个对象存在一个next()方法，当next()方法被调用时，返回格式{ value: 1, done: false}的结果对象。
+                - 因此，我们可以这么定义：迭代器是一个拥有next()方法的特殊对象，每次调用next()都返回一个结果对象。
+                - 参考文章 [ES6系列---迭代器（Iterator）与生成器（Generator）](https://segmentfault.com/a/1190000010747122)
+                - 
+                - 
                 - 每一次迭代的值，都是跟上一次迭代的值 有关系的，它是处于上一个值，下一个序列中 即将被执行的链路
                 - 每一次迭代的值，都反映了 迭代器内部的状态
                 - 这些状态的组合 是一个完整的状态流程
@@ -301,34 +337,53 @@
                 - 其中 value 是某一次迭代的结果，done 是当前是否迭代完成的标志
     - ### 3.generator 生成器
         - 1.什么是 generator 生成器？
-            - 从字面意思来看，生成器 是能够生成 某一个东东 的东西
-            - ```generator 生成器函数``` 是一个可以 **返回迭代器** 的函数
-            - 我们本质上 来是在操作 迭代器
-            - 只不过 借助于生成器函数 来完成这个过程
+            - ```generator 生成器函数``` 是一个可以 `生成迭代器` 的函数 (返回迭代器)
+            - 我们本质上 来是在操作 迭代器，只不过 借助于生成器函数 来完成这个过程
+            - ES6引入了生成器对象，可以让创建迭代器的过程变得更加简单。
         - #### 2.generator 生成器 特征
             - generator 生成器 比普通 function 多一个 * 星号
             - 生成器 每一次迭代，都是通过 yield 关键字来实现
         - 3.来看一下 如何使用 generator 生成器
-            ```js
-            function *makeIterator (arr) {
-                for (let i = 0; i < arr.length; i++) {
-                    yield arr[i]
+            - 例1
+                ```js
+                function *makeIterator (arr) {
+                    for (let i = 0; i < arr.length; i++) {
+                        yield arr[i]
+                    }
                 }
-            }
 
-            const it = makeIterator(['吃饭', '睡觉', '打豆豆'])
+                const it = makeIterator(['吃饭', '睡觉', '打豆豆'])
 
-            console.log('首先', it.next().value)
-            console.log('其次', it.next().value)
-            console.log('然后', it.next().value)
-            console.log('最后', it.next().done)
+                console.log('首先', it.next().value)
+                console.log('其次', it.next().value)
+                console.log('然后', it.next().value)
+                console.log('最后', it.next().done)
 
-            // 打印结果
-            首先 吃饭
-            其次 睡觉
-            然后 打豆豆
-            最后 true
-            ```
+                // 打印结果
+                首先 吃饭
+                其次 睡觉
+                然后 打豆豆
+                最后 true
+                ```
+            - 例2
+                ```js
+                function *createIterator(items) {
+                    for(let i=0; i<items.length; i++) {
+                        yield items[i];
+                    }
+                }
+
+                let iterator = createIterator([1, 2, 3]);
+
+                // 既然生成器返回的是迭代器，自然就可以调用迭代器的next()方法
+                console.log(iterator.next());  // "{ value: 1, done: false}"
+                console.log(iterator.next());  // "{ value: 2, done: false}"
+                console.log(iterator.next());  // "{ value: 3, done: false}"
+                console.log(iterator.next());  // "{ value: undefiend, done: true}"
+                // 之后所有的调用都会返回相同内容
+                console.log(iterator.next());  // "{ value: undefiend, done: true}"
+                ```
+                - 上面，我们用 `ES6` 的生成器，大大简化了迭代器的创建过程。我们给生成器函数createIterator()传入一个items数组，函数内部，for循环不断从数组中生成新的元素放入迭代器中，每遇到一个 `yield` 语句循环都会停止；每次调用迭代器的next()方法，循环便继续运行并停止在下一条 `yield` 语句处。
         - #### 4.总结
                 - 通过 generator 生成器，我们实现了 跟上面 Iterator 迭代器 一样的结果
                 - 生成器的出现，就是为了简化掉 我们以前需要 手写 这一大坨 返回的迭代器对象
@@ -353,13 +408,13 @@
             - [参考资料 《generator-认识生成器函数 - ES6 新语法入门 石川》](https://github.com/946629031/hello-ES6#13generator-%E8%AE%A4%E8%AF%86%E7%94%9F%E6%88%90%E5%99%A8%E5%87%BD%E6%95%B0)
 
 - ## 2-2 co 库执行 promise 和 generator function
-    - ### 什么是 co ？
+    - ### 1.什么是 co ？
         - https://github.com/tj/co
         - co 是一个 js 库
         - 由 tj 大神所贡献的，tj 活跃于 node.js社区、go社区 ... 很多编程语言社区
         - co 是一个 function, 它试图把 所有传入的 参数，都转成 promise。 co 这个库 非常的单纯，就只是一个包装 和 转化 的作用
         - 将接收到的参数，如 `数组、函数、generator function、对象 ...` 全都转成 promise
-    - 如何使用 co ？
+    - 2.如何使用 co ？
         ```js
         const co = require('co')
         const fetch = require('node-fetch') // node-fetch 用于异步请求数据
@@ -390,12 +445,16 @@
             - 结合上节 和 现在的这个代码，我们可以非常直观的理解 `genertor function` 和 它内部的 `yield`
             - 通过 yield 这种同步的方式，基本上就实现了 一个状态 或者 一个进程 **的暂停**
             - 当 第一个 yield 没有执行完的时候，第二个 yield 是不会执行的，也就是说实现了一个 函数暂停
-            - #### co 的意义
+            - #### 3.co 的意义
                 - co 这个函数，让里面的每一个 暂停函数 ，都能够得到 一步一步的自动执行
                 - 也就是 实现了 generator function 的自动执行
 
             - 在上一节中，我们看到，generator function 必须手动调用 next ，才能继续往下执行
             - 但是，我们有了 co，就能实现自动执行完 里面的 暂停函数了
+
+6:14
+
+
 - ## 2-3 箭头函数 arrow function
 - ## 2-4 异步函数 asyunc function 统一世界
 - ## 2-5 借助 babel 编译 import 与 export
