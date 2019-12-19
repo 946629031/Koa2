@@ -634,5 +634,85 @@
 
 
 - ## 2-4 异步函数 asyunc function 统一世界
+    - 1.JS 语言特性变迁史
+        ```
+        - 1.我们从前锁定 this 的作用域，都是通过 `var _this = this`, 这种形式 交给另外一个变量进行缓存。
+        - 然而 有了箭头函数后 这种方式就成为历史了
+        ```
+        ```
+        - 2.我们从前 控制异步的流程，一般通过回调函数
+        - 然而有了 Promise 、generator function、async function 之后，它又成为历史了
+        ```
+    - ### 2.下面我们看看 **控制异步流程**
+        - ### 1.过去的 回调函数 控制异步流程
+            ```js
+            const fs = require('fs')
+
+            // 过去回调函数  控制异步流程
+            function readFile (callback) {
+                fs.readFile('./package.json', (err, data) => {
+                    if (err) return callback(err)
+                    callback && callback(null, data)
+                })
+            }
+
+            readFile((err, data) => {
+                if (err) throw err
+                data = JSON.parse(data)
+                console.log(data)
+            })
+            ```
+        - ### 2.第二阶段 promise
+            ```js
+            const fs = require('fs')
+
+            function readFileAsync (path) {
+                return new Promise((resolve, reject) => {
+                    fs.readFile(path, (err, data) => {
+                        if (err) reject(err)
+                        else resolve(data)
+                    })
+                })
+            }
+
+            readFileAsync('./package.json')
+                .then(data => {
+                    data = JSON.parse(data)
+                    console.log(data)
+                })
+                .catch(err => {
+                    console.log(err)
+                })
+            ```
+        - ### 3.第三个阶段  剑走偏锋  co + generator function + Promise
+            - 借助 co 让generator function自动迭代完毕
+            ```js
+            const fs = require('fs')
+            const co = require('co')
+            const util = require('util')
+
+            co(function *() {
+                let data = yield util.promisify(fs.readFile)('./package.json')
+                data = JSON.parse(data)
+                console.log(data)
+            })
+            ```
+        - ### 4.第四个阶段  Async function 统一世界
+            ```js
+            const fs = require('fs')
+            const util = require('util')
+            const readAsync = util.promisify(fs.readFile)
+
+            async function init () {
+                let data = await readAsync('./package.json')
+                data = JSON.parse(data)
+                console.log(data)
+            }
+
+            init()
+            ```
+        - 从上面的例子中，我们可以看到、了解到 这些年 控制异步的历史
+
+
 - ## 2-5 借助 babel 编译 import 与 export
 - ## 2-6 生产环境使用 babel 支持 es6-7

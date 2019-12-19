@@ -1,39 +1,60 @@
-const luke = {
-    id: 2,
-    say: function () {
-        setTimeout(function(){
-            console.log('id: ', this.id)
-        }, 50)
-    },
-    sayWithThis: function(){
-        let _this = this
+const fs = require('fs')
 
-        setTimeout(function(){
-            console.log('this id: ', _this.id)
-        }, 500)
-    },
-    sayWithArrow: function(){
-        setTimeout(() => {
-            console.log('arrow id: ', this.id)
-        }, 1500)
-    },
-    sayWithGlobalArrow: () => {
-        setTimeout(() => {
-            console.log('global arrow id: ', this.id)
-        }, 2000)
-    }
+// 过去回调函数  控制异步流程
+// function readFile (callback) {
+//     fs.readFile('./package.json', (err, data) => {
+//         if (err) return callback(err)
+//         callback && callback(null, data)
+//     })
+// }
+
+// readFile((err, data) => {
+//     if (err) throw err
+//     data = JSON.parse(data)
+//     console.log(data)
+// })
+
+
+
+// 第二阶段 promise
+function readFileAsync (path) {
+    return new Promise((resolve, reject) => {
+        fs.readFile(path, (err, data) => {
+            if (err) reject(err)
+            else resolve(data)
+        })
+    })
 }
 
-luke.say()
-luke.sayWithThis()
-luke.sayWithArrow()
-luke.sayWithGlobalArrow()
+readFileAsync('./package.json')
+    .then(data => {
+        data = JSON.parse(data)
+        console.log(data)
+    })
+    .catch(err => {
+        console.log(err)
+    })
 
-// 考察 对于箭头函数，this 作用域 的掌握程度
+
+// 第三个阶段  剑走偏锋  co + generator function + Promise
+// 借助 co 让generator function自动迭代完毕
+const co = require('co')
+const util = require('util')
+
+co(function *() {
+    let data = yield util.promisify(fs.readFile)('./package.json')
+    data = JSON.parse(data)
+    console.log(data)
+})
 
 
-// 打印结果
-// id:  undefined
-// this id:  2
-// arrow id:  2
-// global arrow id:  undefined
+// 第四个阶段  Async function 统一世界
+const readAsync = util.promisify(fs.readFile)
+
+async function init () {
+    let data = await readAsync('./package.json')
+    data = JSON.parse(data)
+    console.log(data)
+}
+
+init()
