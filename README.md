@@ -643,7 +643,7 @@
         - 2.我们从前 控制异步的流程，一般通过回调函数
         - 然而有了 Promise 、generator function、async function 之后，它又成为历史了
         ```
-    - ### 2.下面我们看看 **控制异步流程**
+    - ### 2.下面我们看看 **控制异步流程**
         - ### 1.过去的 回调函数 控制异步流程
             ```js
             const fs = require('fs')
@@ -715,4 +715,102 @@
 
 
 - ## 2-5 借助 babel 编译 import 与 export
+    - 1.先来看以前的用法
+        ```js
+        const fs = require('fs')
+
+        const { writeFile } = require('fs')  // 解构方式的模块加载
+        ````
+        - ### 运行时加载
+            - 解构方式的模块加载
+            - 先加载整个 fs 对象，然后再从 fs对象 上拿到 writeFile，
+            - 并且 这个加载必须要等待代码运行的时候 才会 来获取，所以这种加载方式又叫做 **运行时加载** (而不是静态加载)
+        - ### 静态加载
+            - 静态加载 是代码在编译的时候 就能够获取到这个方法 (而不是在运行到时候)
+            - 那么，如何才能实现 静态加载呢？这就需要用到 import
+
+    - ### 2.import 和 export
+        - `import 和 export` 是 ES6 的新特性
+        - 上面的例子，可以这样改写
+            ```js
+            import { writeFile } from 'fs'
+            ```
+        - 存在的问题
+            - 最新的几个 Node.js 版本 都没有实现 `import` 这个关键字，不支持
+            - 先来看个 案例
+                ```js
+                // demo.js
+
+                import fs from 'fs'
+                ```
+                - 执行代码，`node demo.js`
+                - 然后出现报错
+                ```shell
+                import fs from 'fs'
+                ^^^^^^
+
+                SyntaxError: Cannot use import statement outside a module
+                    at Module._compile (internal/modules/cjs/loader.js:895:18)
+                    at Object.Module._extensions..js (internal/modules/cjs/loader.js:995:10)
+                    at Module.load (internal/modules/cjs/loader.js:815:32)
+                    at Function.Module._load (internal/modules/cjs/loader.js:727:14)
+                    at Function.Module.runMain (internal/modules/cjs/loader.js:1047:10)
+                    at internal/main/run_main_module.js:17:11
+                ```
+                - 大概意思是nodejs不支持import语法，如果要支持，需要babel来支持
+
+        - 解决的问题
+            - 所以这个时候，就需要用到 babel 来编译 `import`
+            - 但是，使用 babel 又会带来另外一个问题，使得 **项目的依赖** 变得比较臃肿
+    - ### 3.babel
+        - #### 3-1 安装 babel
+            - `npm i babel-cli babel-preset-env -D`
+        - #### 3-2 使用 babel
+            - bable 配置文件
+                - 在项目根目录下 新建 .babelrc 文件
+                ```js
+                // .babelrc
+                {
+                    "presets": [
+                        [
+                            "env",
+                            {
+                                "targets": {
+                                    "node": "current"
+                                }
+                            }
+                        ]
+                    ]
+                }
+                ```
+        - #### 3-3 新建 index.js
+            ```js
+            // /src/index.js
+
+            import fs from 'fs'
+            ```
+            - 这时候 执行 `node src/index.js` 会报错，跟你上面提到的一样
+        - #### 3-4 定义 监控命令，自动编译
+            ```js
+            // /package.json
+            {
+                "scripts": {
+                    "dev": "nodemon -w src --exec \"babel-node src --presets env\""
+                }
+            }
+            ```
+            - 安装 nodemon `npm i nodemon -D`
+                - `-D` 保存到开发依赖当中
+            - 开启监控 `npm run dev`, 如果有变化 则自动重新编译
+                ```shell
+                [nodemon] 2.0.2
+                [nodemon] to restart at any time, enter `rs`
+                [nodemon] watching dir(s): src/**/*
+                [nodemon] watching extensions: js,mjs,json
+                [nodemon] starting `babel-node src --presets env`
+                [nodemon] clean exit - waiting for changes before restart
+                ```
+
+6:50
+
 - ## 2-6 生产环境使用 babel 支持 es6-7
