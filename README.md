@@ -722,12 +722,17 @@
         const { writeFile } = require('fs')  // 解构方式的模块加载
         ````
         - ### 运行时加载
-            - 解构方式的模块加载
+            - 像上面这种 `require()` 方法
+            - 是 **运行时的模块加载**
             - 先加载整个 fs 对象，然后再从 fs对象 上拿到 writeFile，
             - 并且 这个加载必须要等待代码运行的时候 才会 来获取，所以这种加载方式又叫做 **运行时加载** (而不是静态加载)
         - ### 静态加载
             - 静态加载 是代码在编译的时候 就能够获取到这个方法 (而不是在运行到时候)
-            - 那么，如何才能实现 静态加载呢？这就需要用到 import
+            - 那么，如何才能实现 静态加载呢？
+            - 这就需要用到 `import` 模块加载方式
+            ```js
+            import { writeFile } from 'fs'
+            ```
 
     - ### 2.import 和 export
         - `import 和 export` 是 ES6 的新特性
@@ -789,8 +794,11 @@
 
             import fs from 'fs'
             ```
-            - 这时候 执行 `node src/index.js` 会报错，跟你上面提到的一样
+            - 这时候 执行 `node src/index.js` 会报错，跟上面提到的错误一样
         - #### 3-4 定义 监控命令，自动编译
+            - 我们这里使用 `nodemon` 来做 自动监听
+            - nodemon用来监视node.js应用程序中的任何更改并自动重启服务,非常适合用在开发环境中。
+            
             ```js
             // /package.json
             {
@@ -799,6 +807,7 @@
                 }
             }
             ```
+                - 这句命令的意思是，监听 src目录下的 写入操作，如果监听到，就执行 后面的代码
             - 安装 nodemon `npm i nodemon -D`
                 - `-D` 保存到开发依赖当中
             - 开启监控 `npm run dev`, 如果有变化 则自动重新编译
@@ -810,7 +819,289 @@
                 [nodemon] starting `babel-node src --presets env`
                 [nodemon] clean exit - waiting for changes before restart
                 ```
+            - 示例代码
+                ```js
+                // /src/index.js
 
-6:50
+                import { promisify } from 'util'
+                import { resolve as r } from 'path'
+                import { readFile, writeFileSync as wfs } from 'fs'
+                import * as qs from 'querystring'
+
+                promisify(readFile)(r(__dirname, '../package.json'))
+                    .then(data => {
+                        data = JSON.parse(data)
+
+                        console.log(data.name)
+
+                        wfs(r(__dirname, './name_demo.js'), String(data.name), 'utf8')
+                    })
+                    .catch(err => {
+                        console.log(err)
+                    })
+                ```
+                - 一旦文件改动，就会自动执行 这个文件
+                - 为什么会自动执行，而不是 编译这个文件？
+                    - 添加 `start` 命令 ：`nodemon --exec babel-node src/server.js` 。这个命令是告诉 `nodemon` 去监听文件的变化，一旦检测到有文件发生了变化，就会重启并用babel-node去运行 `src/server.js` 文件。这个命令一般用于本地开发。
+                    - 参考文章： [[译]使用Babel7+nodemon打造你的Node.js项目开发](https://juejin.im/post/5cbe734ff265da036b4a649c)
+
+    - ### 4.export
+        ```js
+        // /src/ex.js
+
+        export const name = 'Luke'
+        export const getName = () => {
+            return name
+        }
+        ```
+        ```js
+        // /src/index.js
+
+        import { name } from './ex'
+        import { getName } from './ex'
+
+        // import { name, getName } from './ex'   // 或者一次性拿到两个
+        ```
+        - 执行 `npm run dev` , 也就是 `"nodemon -w src --exec \"babel-node src --presets env\""`
+        - 他会打印
+            ```
+            Luke
+            Luke
+            ```
+        - 注意：
+            - 我们在 import export 的时候，要注意默认值的问题
+            - 1.在 import 的时候，要把变量名 放在花括号 `{}` 里, 如 `import { name } from './ex'`
+            - 2.但是，在导出 **默认值** 的时候 是可以直接导出的
+                ```js
+                // /src/ex.js
+
+                const age = 19
+                export default age
+                ```
+                ```js
+                import age from './ex'
+
+                // 或者
+                import ageeee from './ex'
+
+                // 或者
+                import yourAge from './ex'
+                ```
+                - 在导出的时候，可以 更改变量名
+                - 但，上面那种，不是导出默认值的，不能直接更改变量名
+                    - 可以这样改 `import { resolve as r } from 'path'`
+        - 批量导出
+            ```js
+            // /src/ex.js
+
+            export const name = 'Luke'
+            export const getName = () => {
+                return name
+            }
+
+
+            const age = 19
+            export default age
+
+
+            // 批量导出
+            export {
+                name as name2,
+                getName as getName2,
+                age 
+            }
+            ```
+            ```js
+            // /src/index.js
+
+            // 批量导入
+            import {
+                name2 as name3,
+                getName2 as getName3,
+                age as age3
+            }
+            ```
+
 
 - ## 2-6 生产环境使用 babel 支持 es6-7
+    - ### 1.存在问题
+        - 在上一节中，我们通过介绍 使用 nodemon 来监听代码修改 ，然后使用 babel-node 实时执行代码
+            - 以达到 实时修改，实时编译，实时服务重启
+        - 那么，到了线上的时候，就需要有一份编译后的 **静态脚本** 来运行
+    - ### 2.新增 build 编译脚本
+        ```js
+        // /package.json
+        {
+            "scripts": {
+                "dev": "nodemon -w src --exec \"babel-node src --presets env\"",
+                "build": "babel src -s -D -d dist --presets env"
+            }
+        }
+        ```
+    - ### 3.执行脚本 `npm run build`
+    - ### 4.改进
+        - 在每次执行编译的时候，我们希望 每次编译前都能自动删除 dist 目录下所有文件，然后重新编译
+        - 借助 rimraf 来实现这个 删除操作
+            - rimraf dist 删除这个文件夹
+        ```js
+        // /package.json
+        {
+            "scripts": {
+                "dev": "nodemon -w src --exec \"babel-node src --presets env\"",
+                "build": "rimraf dist && babel src -s -D -d dist --presets env"
+            }
+        }
+        ```
+        - 安装 rimraf
+            - `npm i rimraf -D`
+        - 执行代码 `npm run build`
+    - ### 5.编译async function的时候会报错
+        - 5-1.问题描述：
+            - 当我们在编译 async function 的时候 会报错
+            - bable 编译的时候 配置的不太正确
+        - 5-2.原因
+            - async function 转 generator function 的时候，
+            - async function 是 ES7 的特性，但是 目前的 babel 是只支持 ES6 的，所以会报错
+        - 5-3.问题重现
+            ```js
+            // /src/index.js
+            
+            import { promisify } from 'util'
+            import { resolve as r } from 'path'
+            import { readFile, writeFileSync as wfs } from 'fs'
+            import * as qs from 'querystring'
+
+            promisify(readFile)(r(__dirname, '../package.json'))
+                .then(data => {
+                    data = JSON.parse(data)
+
+                    console.log(data.name)
+
+                    wfs(r(__dirname, './name_demo.js'), String(data.name), 'utf8')
+                })
+                .catch(err => {
+                    console.log(err)
+                })
+
+
+            // async function
+            async function init () {
+                let data = await promisify(readFile)(r(__dirname, '../package.json'))
+
+                data = JSON.parse(data)
+
+                console.log(data.name)
+            }
+            init()
+            ```
+            ```js
+            // /package.json
+            {
+                "scripts": {
+                    "dev": "nodemon -w src --exec \"babel-node src --presets env\"",
+                    "build": "rimraf dist && babel src -s -D -d dist --presets env"
+                }
+            }
+            ```
+            - 编译完后，执行 `node dist/index.js`
+            - 然后就会报错
+                ```
+                /Users/limi/Documents/Node.js-Koa2-the-movie-trailer-site/project/dist/index.js:5
+                    var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
+                                                            ^
+
+                ReferenceError: regeneratorRuntime is not defined
+                    at /Users/limi/Documents/Node.js-Koa2-the-movie-trailer-site/project/dist/index.js:5:48
+                    at Object.<anonymous> (/Users/limi/Documents/Node.js-Koa2-the-movie-trailer-site/project/dist/index.js:33:2)
+                    at Module._compile (internal/modules/cjs/loader.js:959:30)
+                    at Object.Module._extensions..js (internal/modules/cjs/loader.js:995:10)
+                    at Module.load (internal/modules/cjs/loader.js:815:32)
+                    at Function.Module._load (internal/modules/cjs/loader.js:727:14)
+                    at Function.Module.runMain (internal/modules/cjs/loader.js:1047:10)
+                    at internal/main/run_main_module.js:17:11
+                ```
+        - 5-4.解决问题
+            - 安装两个插件
+                - 一个是 babel 的运行环境，一个是 babel 插件的编译 运行环境
+                - `npm i -S babel-plugin-transform-runtime babel-runtime`
+            - 修改 babel 配置
+                ```js
+                {
+                    "presets": [
+                        [
+                            "env",
+                            {
+                                "targets": {
+                                    "node": "current"
+                                }
+                            }
+                        ]
+                    ],
+                    "plugins": [
+                        [
+                            "transform-runtime", {
+                                "polufill": false,
+                                "regenerator": true
+                            }
+                        ]
+                    ]
+                }
+                ```
+            - 重新编译 `npm run build`
+            - 执行 `node dist/index.js
+            - 这样 就不会报错了`
+
+
+# 第3章 层层学习 Koa 框架的 API
+- ## 3-1 koa 核心对象
+    - ### 1.Koa Express
+        - Koa 和 Express 其实是一样的
+            - 都是 Node.js 上的 web 服务框架
+            - 他们都是围绕 核心服务 而展开的
+        - 那么 什么是核心服务呢？
+            - 1.接收 HTTP 请求
+            - 2.`HTTP -> 接收 -> 解析 -> 响应`
+            - 3.`中间件             执行上下文`
+        - 其中 响应，可以返回 html页面、JSON 文本
+        - 在 `解析请求` 和 `响应请求` 之间 会有一些 第三方的 `中间件`
+            - 如 日志、表单解析... 来增强服务能力
+        - 执行上下文
+            - 可以理解为 HTTP 请求周期内的 `作用域环境`
+            - 来托管请求响应 和 中间件，方便它们之间 互相访问
+        - 应用服务对象
+            ```
+            Application   Context
+            Request       Response
+            Middlewares
+            Session       Cookie
+            ```
+    - ### 2.跑一个最简单的 Koa 服务
+        ```js
+        // /server/index.js
+
+        const Koa = require('koa')
+        const app = new Koa()
+
+        app.use(async (ctx, next) => {
+            ctx.body = 'Hi Luck'
+        })
+
+        app.listen(2333)
+        ```
+        - 安装 koa `npm i koa -S`
+        - 启动服务 `node server/index.js`
+        - 访问网站 `localhost:2333`
+    - ### 3.Koa源码
+        - 在 node_modules 中找到 koa，打开 package.json
+        - 其中 main 就是 koa 的入口文件
+            ```js
+            "main": "lib/application.js",
+            ```
+
+- ## 3-2 web服务类 application
+- ## 3-3 http 上下文对象 context（ctx）
+- ## 3-4 http 请求对象 request（req）
+- ## 3-5 http 响应对象
+- ## 3-6 koa 中间件 middlewares
+- ## 3-7 纯函数-尾递归与魔法大师 koa-compose
+- ## 3-8 session-cookie-路由 koa小结
