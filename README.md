@@ -1099,7 +1099,106 @@
             ```
 
 - ## 3-2 web服务类 application
+    - 其实，我们在 起一个 Koa 服务的时候，只需要3行代码就够了
+        ```js
+        const app = new Koa()  // Application
+
+        app.use(middleware)
+
+        app.listen(2333)
+        ```
+    - 源码解读，具体请查看视频
+    - application 核心源码
+        ```js
+        // Koa/application.js
+        
+        module.exports = class Application extends Emitter {
+
+            constructor(options) {
+                super();
+                options = options || {};
+                this.proxy = options.proxy || false;
+                this.subdomainOffset = options.subdomainOffset || 2;
+                this.proxyIpHeader = options.proxyIpHeader || 'X-Forwarded-For';
+                this.maxIpsCount = options.maxIpsCount || 0;
+                this.env = options.env || process.env.NODE_ENV || 'development';
+                if (options.keys) this.keys = options.keys;
+                this.middleware = [];
+                this.context = Object.create(context);
+                this.request = Object.create(request);
+                this.response = Object.create(response);
+                if (util.inspect.custom) {
+                this[util.inspect.custom] = this.inspect;
+                }
+            }
+
+            listen(...args) {
+                debug('listen');
+                const server = http.createServer(this.callback());
+                return server.listen(...args);
+            }
+
+            use(fn) {
+                debug('use %s', fn._name || fn.name || '-');
+                this.middleware.push(fn);
+                return this;
+            }
+
+            callback() {
+                const fn = compose(this.middleware);
+
+                if (!this.listenerCount('error')) this.on('error', this.onerror);
+
+                const handleRequest = (req, res) => {
+                const ctx = this.createContext(req, res);
+                return this.handleRequest(ctx, fn);
+                };
+
+                return handleRequest;
+            }
+
+            handleRequest(ctx, fnMiddleware) {
+                const res = ctx.res;
+                res.statusCode = 404;
+                const onerror = err => ctx.onerror(err);
+                const handleResponse = () => respond(ctx);
+                onFinished(res, onerror);
+                return fnMiddleware(ctx).then(handleResponse).catch(onerror);
+            }
+
+            createContext(req, res) {
+                const context = Object.create(this.context);
+                const request = context.request = Object.create(this.request);
+                const response = context.response = Object.create(this.response);
+                context.app = request.app = response.app = this;
+                context.req = request.req = response.req = req;
+                context.res = request.res = response.res = res;
+                request.ctx = response.ctx = context;
+                request.response = response;
+                response.request = request;
+                context.originalUrl = request.originalUrl = req.url;
+                context.state = {};
+                return context;
+            }
+
+            onerror(err) {
+                if (!(err instanceof Error)) throw new TypeError(util.format('non-error thrown: %j', err));
+
+                if (404 == err.status || err.expose) return;
+                if (this.silent) return;
+
+                const msg = err.stack || err.toString();
+                console.error();
+                console.error(msg.replace(/^/gm, '  '));
+                console.error();
+            }
+        };
+        ```
+
 - ## 3-3 http 上下文对象 context（ctx）
+    - 
+
+
 - ## 3-4 http 请求对象 request（req）
 - ## 3-5 http 响应对象
 - ## 3-6 koa 中间件 middlewares
