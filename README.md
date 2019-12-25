@@ -1099,7 +1099,8 @@
             ```
 
 - ## 3-2 web服务类 application
-    - 其实，我们在 起一个 Koa 服务的时候，只需要3行代码就够了
+    - 源码解读，具体请查看视频
+    - 1.其实，我们在 起一个 Koa 服务的时候，只需要3行代码就够了
         ```js
         const app = new Koa()  // Application
 
@@ -1107,11 +1108,34 @@
 
         app.listen(2333)
         ```
-    - 源码解读，具体请查看视频
-    - application 核心源码
+    - 2.Application 思维导图
+        ```js
+        Application - Class App extends Emitter
+            - constructor
+            - use
+            - listen
+                - this.callback()
+            - callback
+                - createContext
+                - handleRequest
+                    - compose(middlewares)
+                        - context
+                        - request/response
+                        - context.app = this
+                        - context.req/res = req/res
+                        - request/response - ctx - context
+                        - cookies/ip
+                    - respond
+                        - res.end
+                            - buffer
+                            - string
+                            - stream.pipe
+                            - json
+        ```
+    - 3.Application 核心源码
         ```js
         // Koa/application.js
-        
+
         module.exports = class Application extends Emitter {
 
             constructor(options) {
@@ -1203,4 +1227,67 @@
 - ## 3-5 http 响应对象
 - ## 3-6 koa 中间件 middlewares
 - ## 3-7 纯函数-尾递归与魔法大师 koa-compose
+    - ### 尾递归
+        - 先来看个 尾递归 的例子
+            ```js
+            function tail (i) {
+                if (i > 3) return
+                console.log('修改前', i)
+                tail(i + 1)
+                console.log('修改后', i)
+            }
+            tail(0)
+
+
+            // 打印结果
+            修改前 0
+            修改前 1
+            修改前 2
+            修改前 3
+            修改后 3
+            修改后 2
+            修改后 1
+            修改后 0
+            ```
+        - 参考文章[《尾递归、尾调用优化 - 阮一峰》](https://www.ruanyifeng.com/blog/2015/04/tail-call.html)
+        - 什么是 尾递归？
+            - 1.函数调用自身，称为递归。如果尾调用自身，就称为尾递归。
+            - 2.如果一个函数中所有递归形式的调用都出现在函数的末尾，我们称这个递归函数是尾递归的。
+        - #### 什么是尾调用？
+            - 1.尾调用的概念非常简单，一句话就能说清楚，就是指某个函数的最后一步是调用另一个函数。
+                ```js
+                function f(x){
+                    return g(x);
+                }
+                ```
+                上面代码中，函数f的最后一步是调用函数g，这就叫尾调用。
+
+            - 2.以下两种情况，都不属于尾调用。
+                ```js
+                // 情况一
+                function f(x){
+                    let y = g(x);
+                    return y;
+                }
+
+                // 情况二
+                function f(x){
+                    return g(x) + 1;
+                }
+                ```
+                上面代码中，情况一是调用函数g之后，还有别的操作，所以不属于尾调用，即使语义完全一样。情况二也属于调用后还有操作，即使写在一行内。
+
+            - 3.尾调用不一定出现在函数尾部，只要是最后一步操作即可。
+                ```js
+                function f(x) {
+                    if (x > 0) {
+                        return m(x)
+                    }
+                    return n(x)
+                }
+                ```
+                上面代码中，函数m和n都属于尾调用，因为它们都是函数f的最后一步操作。
+
+3-7  3:06
+
 - ## 3-8 session-cookie-路由 koa小结
