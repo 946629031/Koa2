@@ -1249,7 +1249,13 @@
             修改后 1
             修改后 0
             ```
-        - 参考文章[《尾递归、尾调用优化 - 阮一峰》](https://www.ruanyifeng.com/blog/2015/04/tail-call.html)
+        - 参考文章
+            - [《尾递归、尾调用优化 - 阮一峰》](https://www.ruanyifeng.com/blog/2015/04/tail-call.html)
+            - [JavaScript函数式编程之为什么要函数式编程（非严谨技术层面的扯淡）](https://github.com/zhuanyongxigua/blog/issues/20)
+            - [什么是对象，为什么要面向对象，怎么才能面向对象？](https://github.com/946629031/Blog/blob/master/What%20is%20OOP%EF%BC%9F%E4%BB%80%E4%B9%88%E6%98%AF%E5%AF%B9%E8%B1%A1%EF%BC%8C%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1%EF%BC%8C%E6%80%8E%E4%B9%88%E6%89%8D%E8%83%BD%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1%EF%BC%9F.md)
+            - [js面向对象编程](https://github.com/946629031/Blog/blob/master/js%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1%20Object-oriented%20programming.md)
+
+
         - 什么是 尾递归？
             - 1.函数调用自身，称为递归。如果尾调用自身，就称为尾递归。
             - 2.如果一个函数中所有递归形式的调用都出现在函数的末尾，我们称这个递归函数是尾递归的。
