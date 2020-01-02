@@ -1431,13 +1431,13 @@
         - 3.在中间件执行的策略中，是会先通过 koa-compose，来吧这些 中间件 来组合到一起，一个接一个的 把数组里面的函数 依次执行，通过一个 **`next()`** 中间的回调函数 不断的将 控制权（执行权） 向下传递
             - 理解了 koa-compose 就理解了 koa 的洋葱模型，也是理解 koa中间件 的关键
         - 4.每一个中间件 都会拿到整个 HTTP 请求的上下文 (也就是 **`context`**)，通过 context 能访问到 **`request对象`**，也能访问到 **`respond对象`**，而且能访问到 他们上面的属性 和方法
-        - 5.**`请求上下文`**：贯穿中间件的请求上下文，也就是 context、request、respond 之间互相引用，方便调用。
-            - 特别是 request, respond 他们在 Koa中 分别扩展出两个对象，它们两个并非是 node 原生的对象。
+        - 5.**`请求上下文`**：贯穿中间件的请求上下文，也就是 context、request、respond 之间互相引用，方便调用。
+            - 特别是 request, respond 他们在 Koa中 分别扩展出两个对象，它们两个并非是 node 原生的对象。
             - Node 原生的是 req res
         - 6.**`request, respond`** 和 **`req, res`** 因为互相引用，所以我们能够通过 **`context`** 来访问到
             - `request, respond` 是 Koa扩展对象
-            - `req, res` 是 Node原生对象
-        - 7.通过这一章 源代码 读下来之后，发现，其实只有4个 核心概念
+            - `req, res` 是 Node原生对象
+        - 7.通过这一章 源代码 读下来之后，发现，其实只有4个 核心概念
             > - 请求上下文 context
             > - 请求对象 request
             > - 响应对象 respond
