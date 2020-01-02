@@ -26,7 +26,8 @@
     - [3-5 http 响应对象](#3-5-http-响应对象)
     - [3-6 koa 中间件 middlewares](#3-6-koa-中间件-middlewares)
     - [3-7 纯函数-尾递归与魔法大师 koa-compose](#3-7-纯函数-尾递归与魔法大师-koa-compose)
-    - [3-8 session-cookie-路由 koa小结](#3-8-session-cookie-路由-koa小结)
+    - [3-8 session cookie 路由 koa小结](#3-8-session-cookie-路由-koa小结)
+        - [3.本章总结](#3.本章总结)
 - [第4章 Koa2 与 Koa1 、Express 框架对比](#第4章-Koa2-与-Koa1-、Express-框架对比)
     - [4-1 koa2与koa1 的用法对比](#4-1-koa2与koa1-的用法对比)
     - [4-2 koa 与 express 的api 能力对比](#4-2-koa-与-express-的api-能力对比)
@@ -1229,8 +1230,14 @@
     - 源码解读，详情看视频
 - ## 3-7 纯函数-尾递归与魔法大师 koa-compose
     - 源码解读，详情看视频
-    - ### 1.纯函数
-        - #### 什么是纯函数？
+    >  - 在中间件执行的策略中，是会先通过 koa-compose，来吧这些 中间件 来组合到一起，一个接一个的 把数组里面的函数 依次执行，通过一个 next() 中间的回调函数 不断的将 控制权（执行权） 向下传递
+    > - 理解了 koa-compose 就理解了 koa 的洋葱模型，也是理解 koa中间件 的关键
+    - ### 纯函数、尾递归、可组合
+    - ### 纯函数
+        - 什么是纯函数？
+            - 对于一个函数，如果 输入一个的变量 X , 那么它一定能输出一个结果 y
+            - 不管调用多少次，只要 x 相等，那么得到的 y 也一定相等
+        - 举个例子
             ```js
             function pure (x) {
                 return x + 1
@@ -1343,9 +1350,103 @@
 
 
 
-- ## 3-8 session-cookie-路由 koa小结
+- ## 3-8 session cookie 路由 koa小结
     - 源码解读，详情看视频
     - `npm i koa-session`
-    - session 原理
-        - 客户端 和 服务端 有一个会话
-        - 这个会话会 交流并保存 一些状态 (变量)，如 登陆状态、参数变量 ... 等
+    - ### 1.session
+        - #### session 是什么？
+            - session 原理
+                - 客户端 和 服务端 有一个会话
+                - 这个会话会 交流并保存 一些状态 (变量)，如 登陆状态、参数变量 ... 等
+            - 直接来看个直观的
+                ```js
+                Response Headers
+
+                Connection: keep-alive
+                Content-Length: 7
+                Content-Type: text/plain; charset=utf-8
+                Date: Thu, 02 Jan 2020 08:07:42 GMT
+                Set-Cookie: koa:sess=eyJ2aWV3cyI6NSwiX2V4cGlyZSI6MTU3ODAzODg2MjIyOCwiX21heEFnZSI6ODY0MDAwMDB9; path=/; expires=Fri, 03 Jan 2020 08:07:42 GMT; httponly
+                Set-Cookie: koa:sess.sig=vLtDOmkiYkcjEX3ouxAfg_NULhI; path=/; expires=Fri, 03 Jan 2020 08:07:42 GMT; httponly
+                ```
+                - 其中 `Set-Cookie: koa:sess=ID;` 这个id 就是 session id，每一个用户的身份识别，就是靠这个 session id 了
+        - #### session最小模型
+            - [《koa-session》 github](https://github.com/koajs/session#example)
+            ```js
+            // /server/index.js
+            const Koa = require('koa')
+            const session = require('koa-session')
+            const app = new Koa()
+
+            app.keys = ['Hi Luke'];
+            app.use(session(app));  // app.use(session(CONFIG, app));  当不传config的时候 使用 默认配置
+
+            app.use(ctx => {
+                // ignore favicon
+                if (ctx.path === '/favicon.ico') return
+
+                let n = ctx.session.views || 0
+                ctx.session.views = ++n
+                ctx.body = n + ' views'
+                    
+            })
+
+            app.listen(2333)
+            ```
+            - 执行结果
+                - 启动服务器后，访问 `localhost:2333`
+                - 显示 `1 views`，刷新一次 `2 views`，再刷新一次 `3 views`... 以此类推
+    - ### 2.路由 router
+        - 什么是路由？
+            - 一个网站 肯定有很多 **`不同的页面`**，不同的页面对应不同的 **`URL地址`**，服务器要能识别出不同的页面，然后 **`给不同的页面返回不同的结果`**。这个时候就需要用到路由了
+        - 最简示例
+            ```js
+            const Koa = require('koa')
+            const session = require('koa-session')
+            const app = new Koa()
+
+            app.keys = ['Hi Luke'];
+            app.use(session(app));
+
+            app.use(ctx => {
+                if (ctx.path === '/favicon.ico') return
+                if (ctx.path === '/') {
+                    let n = ctx.session.views || 0
+                    ctx.session.views = ++n
+                    ctx.body = n + ' views'
+                } else if (ctx.path == '/hi') {
+                    ctx.body = 'Hi Luke'
+                } else {
+                    ctx.body = '404'
+                }
+            })
+
+            app.listen(2333)
+            ```
+        - 原理 就是这样
+        - 我们后面是不会使用这么简单的方式，而是 使用第三方的中间件
+    - ### 3.本章总结
+        - 1.在 Koa 里一切的流程都是中间件
+        - 2.一个 HTTP请求 进入了 Koa 之后，都会流经 预先配置好的中间件 (middlewares)
+        - 3.在中间件执行的策略中，是会先通过 koa-compose，来吧这些 中间件 来组合到一起，一个接一个的 把数组里面的函数 依次执行，通过一个 **`next()`** 中间的回调函数 不断的将 控制权（执行权） 向下传递
+            - 理解了 koa-compose 就理解了 koa 的洋葱模型，也是理解 koa中间件 的关键
+        - 4.每一个中间件 都会拿到整个 HTTP 请求的上下文 (也就是 **`context`**)，通过 context 能访问到 **`request对象`**，也能访问到 **`respond对象`**，而且能访问到 他们上面的属性 和方法
+        - 5.**`请求上下文`**：贯穿中间件的请求上下文，也就是 context、request、respond 之间互相引用，方便调用。
+            - 特别是 request, respond 他们在 Koa中 分别扩展出两个对象，它们两个并非是 node 原生的对象。
+            - Node 原生的是 req res
+        - 6.**`request, respond`** 和 **`req, res`** 因为互相引用，所以我们能够通过 **`context`** 来访问到
+            - `request, respond` 是 Koa扩展对象
+            - `req, res` 是 Node原生对象
+        - 7.通过这一章 源代码 读下来之后，发现，其实只有4个 核心概念
+            > - 请求上下文 context
+            > - 请求对象 request
+            > - 响应对象 respond
+            > - 中间件 middlewares
+        - 8.但是真正复杂的是
+            > - HTTP协议
+            > - 资源
+            > - TCP/IP 相关的网络通信知识
+            > - 前后端请求的策略设定
+            > - 请求流程的性能优化
+            - 
+            - 以上这些都不是属于 Koa web服务框架中的知识，但却是 这个框架之上的硬知识
