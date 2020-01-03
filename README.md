@@ -1450,3 +1450,17 @@
             > - 请求流程的性能优化
             - 
             - 以上这些都不是属于 Koa web服务框架中的知识，但却是 这个框架之上的硬知识
+
+# 第4章 Koa2 与 Koa1 、Express 框架对比
+- ## 4-1 koa2与koa1 的用法对比
+    - 本节目标
+        - 通关例子讲解，帮助大家理解 koa2 和 koa1 的异同之处
+    ```js
+    const Koa = require('Koa')
+    const app = new Koa()
+    var logger = require('koa-logger')
+    ```
+
+- ## 4-2 koa 与 express 的api 能力对比
+- ## 4-3 koa 与 express的中间件执行模板对比
+- ## 4-4 koa2 espress 选型及小结（含奖励哦）
