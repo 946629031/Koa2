@@ -1455,11 +1455,139 @@
 - ## 4-1 koa2与koa1 的用法对比
     - 本节目标
         - 通关例子讲解，帮助大家理解 koa2 和 koa1 的异同之处
-    ```js
-    const Koa = require('Koa')
-    const app = new Koa()
-    var logger = require('koa-logger')
-    ```
+    - 1.先来看个 koa1 的例子
+        ```js
+        var Koa = require('koa')
+        var app = new Koa()
+        var logger = require('koa-logger') // 打印日志，第三方模块
+
+        var indent = function (n) {
+            return new Array(n).join('&nbsp;')
+        }
+
+        var mid1 = function () {
+            return function *(next) {
+                this.body = '<h3>请求 => 第一层中间件</h3>'
+                yield next
+                this.body += '<h3>请求 <= 第一层中间件</h3>'
+            }
+        }
+
+        var mid2 = function () {
+            return function *(next) {
+                this.body += '<h3>请求' + indent(4) + ' => 第二层中间件</h3>'
+                yield next
+                this.body += '<h3>请求' + indent(4) + ' <= 第二层中间件</h3>'
+            }
+        }
+
+        var mid3 = function () {
+            return function *(next) {
+                this.body += '<h3>请求' + indent(8) + ' => 第三层中间件</h3>'
+                yield next
+                this.body += '<h3>请求' + indent(8) + ' <= 第三层中间件</h3>'
+            }
+        }
+
+        app.use(logger())
+        app.use(mid1())
+        app.use(mid2())
+        app.use(mid3())
+
+        app.use(function *(next) {
+            this.body += '<p style="color: #f60">' + indent(12) + 'Koa 核心处理业务</p>'
+        })
+
+        app.listen(2333)
+        ```
+        - 执行之前，先安装 koa1 
+            - `npm i koa@1.2.0 koa-logger@1.3.0 -S` -S 是保存
+            - 切换koa版本
+                - 直接 `npm i koa@1.2.0 -S` 即可
+                - 切换到 koa2 `npm i koa@2.4.1 -S`
+        - koa-logger 的作用
+            - 在命令行中打印日志
+            ```js
+            node server  // 启动服务
+
+              <-- GET /
+              --> GET / 200 12ms 342b
+            ```
+    - 2.再来看个 koa2 的例子
+        - 把koa1改成koa2
+            - 1.把所有 var 改成 const / let
+            - 2.把所有 function 都改成 箭头函数
+            - 3.把 generator function 改成 async function
+            - 4.把`this.body` 改成 `ctx.body`
+            - 5.把 yield next 改成 await next
+            - 6.把字符串拼接的方式，改成模版字符串
+                ```js
+                '<h3>请求' + indent(4) + ' => 第二层中间件</h3>'
+
+                // 改成
+                `<h3>请求${indent(4)} <= 第二层中间件</h3>`
+                ```
+        ```js
+        const Koa = require('koa')
+        const app = new Koa()
+        const logger = require('koa-logger') // 打印日志，第三方模块
+
+        const indent = (n) => new Array(n).join('&nbsp;')
+
+        const mid1 = () => {
+            return async (ctx, next) => {
+                ctx.body = `<h3>请求 => 第一层中间件</h3>`
+                await next()
+                ctx.body += `<h3>请求 <= 第一层中间件</h3>`
+            }
+        }
+
+        const mid2 = () => {
+            return async (ctx, next) => {
+                ctx.body += `<h3>请求${indent(4)} => 第二层中间件</h3>`
+                await next()
+                ctx.body += `<h3>请求${indent(4)} <= 第二层中间件</h3>`
+            }
+        }
+
+        const mid3 = () => {
+            return async (ctx, next) => {
+                ctx.body += `<h3>请求${indent(8)} => 第三层中间件</h3>`
+                await next()
+                ctx.body += `<h3>请求${indent(8)} <= 第三层中间件</h3>`
+            }
+        }
+
+        app.use(logger())
+        app.use(mid1())
+        app.use(mid2())
+        app.use(mid3())
+
+        app.use(async (ctx, next) => {
+            ctx.body += `<p style="color: #f60">${indent(12)}Koa 核心处理业务</p>`
+        })
+
+        app.listen(2333)
+        ```
+
+        - 执行结果
+            ```html
+            请求 => 第一层中间件
+            请求    => 第二层中间件
+            请求        => 第三层中间件
+                    Koa 核心处理业务
+            请求        <= 第三层中间件
+            请求    <= 第二层中间件
+            请求 <= 第一层中间件
+            ```
+    - 3.总结
+        - 1.依托的方式不一样
+            - koa1 依托于 generator function ，以及 配套的 co库
+            - koa2 依托于 async function
+        - 2.语法
+            - koa1 语法主要以 ES5 为主，有部分ES6
+            - koa2 语法跟进新规范 ES6 ES7
+        - 3.koa2 koa1 中间件 执行特征、链路 虽然相似，但是 代码层面的设计策略 执行逻辑稍微不一样
 
 - ## 4-2 koa 与 express 的api 能力对比
 - ## 4-3 koa 与 express的中间件执行模板对比
