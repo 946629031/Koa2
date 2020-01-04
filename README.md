@@ -1232,6 +1232,7 @@
     - 源码解读，详情看视频
     >  - 在中间件执行的策略中，是会先通过 koa-compose，来吧这些 中间件 来组合到一起，一个接一个的 把数组里面的函数 依次执行，通过一个 next() 中间的回调函数 不断的将 控制权（执行权） 向下传递
     > - 理解了 koa-compose 就理解了 koa 的洋葱模型，也是理解 koa中间件 的关键
+    >   - 洋葱模型： 一层层进去，处理核心业务，然后再一层层出来
     - ### 纯函数、尾递归、可组合
     - ### 纯函数
         - 什么是纯函数？
@@ -1590,5 +1591,170 @@
         - 3.koa2 koa1 中间件 执行特征、链路 虽然相似，但是 代码层面的设计策略 执行逻辑稍微不一样
 
 - ## 4-2 koa 与 express 的api 能力对比
+    - koa 与 express 其实是同一班人的 开发者
+    - express
+        - 出现的够早，占了整个市场的先机，市场份额大
+        - 当时还没有 成熟的 generator function , async function 这些语言规范的推出
+        - 从最开始的 大而全，囊括大部分中间件 -> 到后面 抽离出这些 中间件
+            - 每次大升级 都会引发社区火热的讨论
+            - 这充分说明 express 有很好的 社区支持 和群众基础
+    - ### Koa VS Express
+        - express
+            - 提供更多的控制权 和 配置权
+            - 更让人省心，拿过来就能用，不需要操心太多 定制的东西
+        - koa
+            - koa 比 express 更容易做底层的深度定制
+    - api 对比
+    ```js
+    Koa
+    - cosnt app = new Koa()
+    
+    - app
+        - settings
+            - env
+            - proxy
+            - subdomains
+        - listen(3000)
+        - callback()
+        - use( async () )
+        - keys = []
+        - context
+        - on('error')
+
+    - ctx API
+        - req
+        - res
+
+        - request
+            - header
+            - headers
+            - methods
+            - url
+            - originUrl
+            - origin
+            - href
+            - path
+            - query
+            - queryString ???????
+            - host
+            - hostname
+            - fresh
+            - stale
+            - socket
+            - protocol
+            - secure
+            - ip
+            - ips
+            - subdomains
+            - is()
+            - accepts()
+            - acceptEncodings()
+            - acceptCharsets()
+            - acceptLanguages()
+            - get()
+            
+        - respond
+            - ctx
+            - body
+            - status
+            - message
+            - length
+            - type
+            - headerSent
+            - redirect()
+            - attachment()
+            - set()
+            - append()
+            - lastModified
+            - etag
+
+        - state
+        - app
+        - cookies.get()
+        - cookies.set()
+        - throw()
+        - assert()
+        - respond()
+        - method
+        - url
+        - path
+        
+    ```
+    ```js
+    Express
+    - const app = express()
+
+    - app
+        - settings
+            - env
+            - trust proxy
+            - json callback name
+            - json replace
+            - case sensitive routing
+            - strict routing
+            - view cache
+            - view engine
+            - views
+
+        - set()
+        - get()
+        - enable() - enabled()
+        - disable()
+        - use()
+        - listen()
+        - engine()
+        - param()
+        - VERB - get('/a/:b')
+        - all()
+        - route()
+        - locals()
+        - render()
+
+    - request - req
+        - query
+        - params
+        - param()
+        - route
+        - cookies
+        - signedCookies
+        - get()
+        - accepts()
+        - acceptsCharset()
+        - acceptsLanguage()
+        - is()
+        - ip
+        - ips
+        - path
+        - host
+        - fresh
+        - stale
+        - xhr
+        - protocol
+        - secure
+        - subdomains
+        - originUrl
+            
+    - respond - res
+        - status()
+        - set()
+        - get()
+        - redirect()
+        - cookie()
+        - clearCookie()
+        - location()
+        - send()
+        - json()
+        - jsonp()
+        - type()
+        - format()
+        - attachment()
+        - sendfile()
+        - download()
+        - links()
+        - locals()
+        - locals
+        - render()
+    ```
+
 - ## 4-3 koa 与 express的中间件执行模板对比
 - ## 4-4 koa2 espress 选型及小结（含奖励哦）
