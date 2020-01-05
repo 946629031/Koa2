@@ -32,7 +32,7 @@
     - [4-1 koa2与koa1 的用法对比](#4-1-koa2与koa1-的用法对比)
     - [4-2 koa 与 express 的api 能力对比](#4-2-koa-与-express-的api-能力对比)
     - [4-3 koa 与 express的中间件执行模板对比](#4-3-koa-与-express的中间件执行模板对比)
-    - [4-4 koa2 espress 选型及小结（含奖励哦）](#4-4-koa2-espress-选型及小结（含奖励哦）)
+    - [4-4 koa2 espress 选型及小结](#4-4-koa2-espress-选型及小结)
 - [第5章 从 0 开发一个电影预告片网站](#第5章-从-0-开发一个电影预告片网站)
     - [5-1 设计与分析](#5-1-设计与分析)
     - [5-2 行代码撸一个服务器推到git仓库](#5-2-行代码撸一个服务器推到git仓库)
@@ -1757,4 +1757,184 @@
     ```
 
 - ## 4-3 koa 与 express的中间件执行模板对比
-- ## 4-4 koa2 espress 选型及小结（含奖励哦）
+    - ### 1.Express 使用中间件
+        - 安装 `npm i express -S`
+        - 用 express 起一个服务
+            ```js
+            const express = require('express')
+            const app = express()
+
+            app.get('/', (req, res) => {
+                res.send('Hi Luke')
+            })
+
+            app.listen(2334)
+            ```
+        - 把之前 [4-1 koa2与koa1 的用法对比](#4-1-koa2与koa1-的用法对比) 中 koa2 使用中间件的代码，改成 express
+            - 改动
+                - 把 async function 改成 普通箭头函数
+                - 把 `(ctx, next) => {}` 改成 `(req, res, next) => {}`
+                - 把 `await next()` 改成 `next()`
+                - 把 `ctx.body` 改成 `res.body`
+                - 最后
+                    ```js
+                    // koa
+
+                    app.use((ctx, next) => {
+                        ctx.body += `<p style="color: #f60">${indent(12)}Koa 核心处理业务</p>`
+                    })
+                    ```
+                    - 改成
+                    ```js
+                    // express
+                    
+                    app.get('/', (req, res, next) => {
+                        res.send( `${res.body}<p style="color: #f60">${indent(12)}Koa 核心处理业务</p>`)
+                    })
+                    ```
+        ```js
+        // express 使用中间件
+
+        const express = require('express')
+        const app = express()
+
+        const indent = (n) => new Array(n).join('&nbsp;')
+
+        const mid1 = () => {
+            return (req, res, next) => {
+                res.body = `<h3>请求 => 第一层中间件</h3>`
+                next()
+                res.body += `<h3>请求 <= 第一层中间件</h3>`
+            }
+        }
+
+        const mid2 = () => {
+            return (req, res, next) => {
+                res.body += `<h3>请求${indent(4)} => 第二层中间件</h3>`
+                next()
+                res.body += `<h3>请求${indent(4)} <= 第二层中间件</h3>`
+            }
+        }
+
+        const mid3 = () => {
+            return (req, res, next) => {
+                res.body += `<h3>请求${indent(8)} => 第三层中间件</h3>`
+                next()
+                res.body += `<h3>请求${indent(8)} <= 第三层中间件</h3>`
+            }
+        }
+
+        app.use(mid1())
+        app.use(mid2())
+        app.use(mid3())
+
+        app.get('/', (req, res, next) => {
+            res.send( `${res.body}<p style="color: #f60">${indent(12)}Express 核心处理业务</p>`)
+        })
+
+        app.listen(2334)
+        ```
+        - 执行结果
+            ```
+            请求 => 第一层中间件
+            请求    => 第二层中间件
+            请求        => 第三层中间件
+                    Express 核心处理业务
+            ```
+    - ### 2.Koa2 使用中间件
+        ```js
+        const Koa = require('koa')
+        const app = new Koa()
+        const logger = require('koa-logger') // 打印日志，第三方模块
+
+        const indent = (n) => new Array(n).join('&nbsp;')
+
+        const mid1 = () => {
+            return async (ctx, next) => {
+                ctx.body = `<h3>请求 => 第一层中间件</h3>`
+                await next()
+                ctx.body += `<h3>请求 <= 第一层中间件</h3>`
+            }
+        }
+
+        const mid2 = () => {
+            return async (ctx, next) => {
+                ctx.body += `<h3>请求${indent(4)} => 第二层中间件</h3>`
+                await next()
+                ctx.body += `<h3>请求${indent(4)} <= 第二层中间件</h3>`
+            }
+        }
+
+        const mid3 = () => {
+            return async (ctx, next) => {
+                ctx.body += `<h3>请求${indent(8)} => 第三层中间件</h3>`
+                await next()
+                ctx.body += `<h3>请求${indent(8)} <= 第三层中间件</h3>`
+            }
+        }
+
+        app.use(logger())
+        app.use(mid1())
+        app.use(mid2())
+        app.use(mid3())
+
+        app.use(async (ctx, next) => {
+            ctx.body += `<p style="color: #f60">${indent(12)}Koa 核心处理业务</p>`
+        })
+
+        app.listen(2333)
+        ```
+
+        - 执行结果
+            ```html
+            请求 => 第一层中间件
+            请求    => 第二层中间件
+            请求        => 第三层中间件
+                    Koa 核心处理业务
+            请求        <= 第三层中间件
+            请求    <= 第二层中间件
+            请求 <= 第一层中间件
+            ```
+    - ### 3.Koa2 与 Express 对比异同 的结果
+        - 1.进出模型
+            - 观察
+                - Koa 的中间件 是一个 **`洋葱模型`**，一层层进去，然后一层层出来
+                - 但是在 Express 里面，虽然代码 也是这样写的，中间件也生效了
+                - Express 的整个链路 只进不出
+            - 总结：如果不借助外力，仅仅是语言本身的能力，Express 是很难做到， 跟 Koa 一样 数据流入流出能力的
+            - 如果 express 想要一层层进去，目前这些代码是不够的，我们需要加上 **`事件触发`**，类似这样的机制，才能保证 它跟 koa 一样的 **`进出模型`**
+        - 2.编程体验上
+            - express，是这种常规的编程模型
+            - koa，是 async function 这种新语言特性
+        - 3.中间件
+            - express，是单向流动。而且需要借助事件机制，才能保障 一个数据进去之后 能够返程流动
+            - koa，由于有语法特性，又加强了 异步编程模型，所以 整个 HTTP流 处理起来 就非常的灵活。
+                - 这是非常美妙的编程体验，不仅仅是写起来爽
+                - koa 中间件的模型，运行起来的过程 非常的清晰，无论是调试、捕捉异常、做加减法的维护 都非常的轻松
+                
+- ## 4-4 koa2 espress 选型及小结
+    - koa 是基于新的语法特性，实现了 promise 链的传递
+    - 错误处理 也更友好
+    - koa 不绑定任务中间件，是非常干净的 裸的框架
+    - 如果 express 是 **`大而全`**，那么 koa 就是 **`小而精`** ，两者定位不同
+        - koa 扩展性 非常好，只要装几个中间件 就马上可以跟 express 匹敌了
+    - koa 代码质量高，设计理念先进，语法特性比较超前
+
+
+# 第5章 从 0 开发一个电影预告片网站
+- ## 5-1 设计与分析
+    - 网站前台
+        - 首页
+            - 展示电影海报 和 部分信息
+            - 首页顶部 有电影分类
+        - 视频：点击首页海报图 弹出视频 弹窗
+        - 详情页：点击首页 电影标题 进入详情页，详情页内 又同类电影推荐
+    - 网站后台
+        - 后台登陆功能
+        - 后台管理页面：展示 爬取到的 所有电影列表
+
+- ## 5-2 行代码撸一个服务器推到git仓库
+- ## 5-3 服务器返回一个静态 html页面
+- ## 5-4 集成模板引擎 koa 搭建初始模板目录
+- ## 5-5 集成模板引擎到koa 搭建初始模板目录
+- ## 5-6 借助 bootstrap 4-x 搭建网站首页
