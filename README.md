@@ -1939,6 +1939,7 @@
 - ## 5-3 服务器返回一个静态 html页面
     ```js
     // /server/index.js
+    
     const Koa = require('koa')
     const app = new Koa()
     const { normal } = require('./template')
@@ -1947,6 +1948,8 @@
         ctx.type = 'text/html; charset=utf-8'
         ctx.body = normal
     })
+
+    app.listen(2333)
     ```
     ```js
     // /server/template/index.js
@@ -1973,9 +1976,119 @@
     </body>
     </html>
     `
-    }
     ```
 
 - ## 5-4 集成模板引擎 koa 搭建初始模板目录
+    - 本节介绍3个 模版引擎
+        - ejs
+        - pug
+        - jage
+
+    - BootCDN  CDN 加速服务
+        - https://www.bootcdn.cn/
+        - https://cdn.bootcss.com/jquery/3.4.1/jquery.js
+    - ### 1.ejs
+        - https://github.com/tj/ejs
+        - 安装 `npm i ejs`
+        ```js
+        // /server/template/ejs.js
+
+        module.exports = `
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <meta http-equiv="X-UA-Compatible" content="ie=edge">
+            <title>Document</title>
+        </head>
+        <body>
+            hello world
+            <h1>Hi <%= you %></h1>
+            <p>this is <%= me %></p>
+        </body>
+        </html>
+        `
+        ```
+        - 其中 `<%= you %>` 里面放的是变量名
+        ```js
+        // /server/index.js
+        const Koa = require('koa')
+        const app = new Koa()
+        const ejs = require('ejs')
+        const { ejsTpl } = require('./template')
+
+        app.use(async (ctx, next) => {
+            ctx.type = 'text/html; charset=utf-8'
+            ctx.body = ejs.render(ejsTpl, {
+                you: 'Luke',    // 为模版里的变量赋值
+                me: 'Scott'
+            })
+        })
+
+        app.listen(2333)
+        ```
+        ```js
+        // /server/template/index.js
+
+        module.exports = {
+            ejsTpl: require('./ejs')
+        }
+        ```
+    - ### 2.pug
+        - https://github.com/pugjs/pug
+        - 安装 `npm i pug`
+        ```js
+        // /server/template/pug.js
+        module.exports = `
+        doctype html
+        html
+            head
+                meta(charset="utf-8")
+                meta(name="viewport", content="width=device-width, initial-scale=1")
+                title Koa Server Pug
+                link(href="https://cdn.bootcss.com/animate.css/3.7.2/animate.css" rel="stylesheet")
+                script(src="https://cdn.bootcss.com/jquery/3.4.1/jquery.js")
+            body
+                .container
+                    .row
+                    .clo-md-8
+                        h1 Hi #{you}
+                        p This is #{me}
+                    .clo-md-4
+                        p 测试动态 Pug 页面
+        `
+        ```
+        ```js
+        // /server/index.js
+        const Koa = require('koa')
+        const app = new Koa()
+        const pug = require('pug')
+        const { pugTpl } = require('./template')
+
+        app.use(async (ctx, next) => {
+            ctx.type = 'text/html; charset=utf-8'
+            ctx.body = pug.render(pugTpl, {
+                you: 'Luke 111',
+                me: 'Scott 22'
+            })
+        })
+
+        app.listen(2333)
+        ```
+        ```js
+        // /server/template/index.js
+        module.exports = {
+            normal: require('./normal'),
+            ejsTpl: require('./ejs'),
+            pugTpl: require('./pug')
+        }
+        ```
+
+    - ### 3.jade
+        - [《带你学习Jade模板引擎》 - 慕课网](https://www.imooc.com/learn/259)
+
 - ## 5-5 集成模板引擎到koa 搭建初始模板目录
+
+
 - ## 5-6 借助 bootstrap 4-x 搭建网站首页
