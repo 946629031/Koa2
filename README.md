@@ -1934,7 +1934,48 @@
         - 后台管理页面：展示 爬取到的 所有电影列表
 
 - ## 5-2 行代码撸一个服务器推到git仓库
+    - github 新建仓库，并 clone 到本地
+
 - ## 5-3 服务器返回一个静态 html页面
+    ```js
+    // /server/index.js
+    const Koa = require('koa')
+    const app = new Koa()
+    const { normal } = require('./template')
+
+    app.use(async (ctx, next) => {
+        ctx.type = 'text/html; charset=utf-8'
+        ctx.body = normal
+    })
+    ```
+    ```js
+    // /server/template/index.js
+    const normalTpl = require('./normal')
+
+    module.exports = {
+        normal: normalTpl
+    }
+    ```
+    ```js
+    // /server/template/normal.js
+
+    module.exports = `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta http-equiv="X-UA-Compatible" content="ie=edge">
+        <title>Document</title>
+    </head>
+    <body>
+        hello world
+    </body>
+    </html>
+    `
+    }
+    ```
+
 - ## 5-4 集成模板引擎 koa 搭建初始模板目录
 - ## 5-5 集成模板引擎到koa 搭建初始模板目录
 - ## 5-6 借助 bootstrap 4-x 搭建网站首页
