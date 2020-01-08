@@ -38,7 +38,7 @@
     - [5-2 行代码撸一个服务器推到git仓库](#5-2-行代码撸一个服务器推到git仓库)
     - [5-3 服务器返回一个静态 html页面](#5-3-服务器返回一个静态-html页面)
     - [5-4 集成模板引擎 koa 搭建初始模板目录](#5-4-集成模板引擎-koa-搭建初始模板目录)
-    - [5-5 集成模板引擎到koa 搭建初始模板目录](#5-5-集成模板引擎到koa-搭建初始模板目录)
+    - [5-5 模版引擎中间件 集成模板引擎到koa 搭建初始模板目录](#5-5-模版引擎中间件-集成模板引擎到koa-搭建初始模板目录)
     - [5-6 借助 bootstrap 4-x 搭建网站首页](#5-6-借助-bootstrap-4-x-搭建网站首页)
 - [第6章 利用爬虫搞定网站基础数据](#第6章-利用爬虫搞定网站基础数据)
     - [6-1 设计与分析](#6-1-设计与分析)
@@ -2088,7 +2088,138 @@
     - ### 3.jade
         - [《带你学习Jade模板引擎》 - 慕课网](https://www.imooc.com/learn/259)
 
-- ## 5-5 集成模板引擎到koa 搭建初始模板目录
+- ## 5-5 模版引擎中间件 集成模板引擎到koa 搭建初始模板目录
+    - 存在的问题
+        - 在上一节中，我们使用模版引擎，都是通过 拼接字符串的方式
+        - 这种方式不是不行，只是比较的人肉，比较麻烦
+        - 那么，这一节，我们通过使用 **`模版引擎中间件`** 的形式 集成到项目里
+    - 解决问题
+        - 在 github 搜索 [koa-views](https://github.com/queckezz/koa-views)
+        - 点击 [List of supported engines](https://github.com/tj/consolidate.js#supported-template-engines) 查看支持的 **`模版引擎`**
+        - 这节 我们选择 pug 模版引擎
+    - ### 模版引擎中间件 koa-views
+        - 安装 `npm i koa-views`
+        ```js
+        // /server/index.js
+
+        const Koa = require('koa')
+        const app = new Koa()
+        const views = require('koa-views')
+        const { resolve } = require('path')
+
+        app.use(views(resolve(__dirname, './views'), { // 配置 koa-views
+            extension: 'pug'
+        }))
+
+        app.use(async (ctx, next) => {
+            await ctx.render('index', {
+                you: 'Luke',
+                me: 'Scoot'
+            })
+        })
+
+        app.listen(2333)
+        ```
+        ```pug
+        // /server/views/index.pug
+
+        doctype html
+        html
+            head
+                meta(charset="utf-8")
+                meta(name="viewport", content="width=device-width, initial-scale=1")
+                title Koa Server Pug
+                link(href="https://cdn.bootcss.com/animate.css/3.7.2/animate.css" rel="stylesheet")
+                script(src="https://cdn.bootcss.com/jquery/3.4.1/jquery.js")
+            body
+                .container
+                    .row
+                    .clo-md-8
+                        h1 Hi #{you}
+                        p This is #{me}
+                    .clo-md-4
+                        p 测试动态 Pug 页面
+        ```
+    - ### Pug 使用
+        - 选择 pug 到原因
+            - 语法简洁
+            - 支持 模版继承
+            - 支持 模块声明
+        - 项目目录
+            ```
+            +  |- /dist
+            +  |- /node_modules
+            +  |- /server
+            +     |- /template
+            +     |- /views
+                     |- index.pug
+            +        |- /layouts 页面布局
+                        |- default.pug
+            +        |- /includes 公用模块
+                        |- script.pug
+                        |- style.pug
+                  |- index.js
+            +  |- /src
+               |- package-lock.json
+               |- package.json
+            ```
+        - pug 语法
+            - `include ../includes/style` 引入
+            - `extends ./layouts/default` 继承
+            - `block content` block 定义模块
+                ```
+                block content     //定义模块，模块名 content
+                    .container
+                        .row
+                        .clo-md-8
+                            h1 Hi #{you}
+                            p This is #{me}
+                        .clo-md-4
+                            p 测试动态 Pug 页面
+                ```
+        - pug 模块拆分
+            ```pug
+            // /server/views/index.pug
+
+            extends ./layouts/default    // 继承
+
+            block title                  // 模块定义
+                title Koa Douban 首页
+
+            block content
+                .container
+                    .row
+                    .clo-md-8
+                        h1 Hi #{you}
+                        p This is #{me}
+                    .clo-md-4
+                        p 测试动态 Pug 页面
+            ```
+            ```pug
+            // /server/views/layouts/default.pug
+
+            doctype html
+            html
+                head
+                    meta(charset="utf-8")
+                    meta(name="viewport", content="width=device-width, initial-scale=1")
+                    block title
+                    include ../includes/style
+                body
+                    block content
+                    include ../includes/script
+            ```
+            ```pug
+            // /server/views/includes/script.pug
+
+            script(src="https://cdn.bootcss.com/jquery/3.4.1/jquery.js")
+            ```
+            ```pug
+            // /server/views/includes/style.pug
+
+            link(href="https://cdn.bootcss.com/animate.css/3.7.2/animate.css" rel="stylesheet")
+            ```
+
 
 
 - ## 5-6 借助 bootstrap 4-x 搭建网站首页
