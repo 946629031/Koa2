@@ -2223,3 +2223,6 @@
 - test pull request
 
 - ## 5-6 借助 bootstrap 4-x 搭建网站首页
+    - DPlayer
+        - [DPlayer github](https://github.com/MoePlayer/DPlayer)
+        - H5播放器，B站也在用这个播放器，可添加弹幕
