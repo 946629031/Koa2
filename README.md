@@ -2493,3 +2493,22 @@
         link(href="https://cdn.bootcss.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css" rel="stylesheet")
         link(href="https://cdn.jsdelivr.net/npm/dplayer/dist/DPlayer.min.css" rel="stylesheet")
         ```
+
+
+
+# 第6章 利用爬虫搞定网站基础数据
+- ## 6-1 设计与分析
+    ```mermaid
+    graph LR
+    A[Hard edge] -->B(Round edge)
+        B --> C{Decision}
+        C -->|One| D[Result one]
+        C -->|Two| E[Result two]
+    ​```
+
+- ## 6-2 利用 puppeteer 爬取和分析电影列表
+- ## 6-3 child_process fork 子进程来运行爬虫脚本
+- ## 6-4 服务器端通过 request 向豆瓣 api 请求详细数据
+- ## 6-5 scott 与妹子合租引发的同步异步与阻塞
+- ## 6-6 puppeteer 深度爬取封面图和视频地址
+- ## 6-7 上传线上封面图和视频搬砖到七牛云图床上
