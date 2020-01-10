@@ -2153,9 +2153,9 @@
             +     |- /template
             +     |- /views
                      |- index.pug
-            +        |- /layouts 页面布局
+            +        |- /layouts        页面布局
                         |- default.pug
-            +        |- /includes 公用模块
+            +        |- /includes       公用模块
                         |- script.pug
                         |- style.pug
                   |- index.js
@@ -2226,3 +2226,270 @@
     - DPlayer
         - [DPlayer github](https://github.com/MoePlayer/DPlayer)
         - H5播放器，B站也在用这个播放器，可添加弹幕
+        
+    - 项目目录
+        ```
+        +  |- /dist
+        +  |- /node_modules
+        +  |- /server
+        +     |- /template
+        +     |- /views
+                    |- index.pug
+        +        |- /layouts         页面布局
+                    |- default.pug
+        +        |- /includes        公用模块
+                    |- header.pug
+                    |- script.pug
+                    |- style.pug
+                |- index.js
+        +  |- /src
+            |- package-lock.json
+            |- package.json
+        ```
+    - 代码
+        ```js
+        // /server/index.js
+        const Koa = require('koa')
+        const app = new Koa()
+        const views = require('koa-views')
+        const { resolve } = require('path')
+
+        app.use(views(resolve(__dirname, './views'), {
+            extension: 'pug'
+        }))
+
+        app.use(async (ctx, next) => {
+            await ctx.render('index', {
+                you: 'Luke',
+                me: 'Scoot'
+            })
+        })
+
+        app.listen(2333)
+        ```
+        ```pug
+        // /server/views/index.pug
+        
+        extends ./layouts/default
+
+        block title
+            title Koa Douban 首页
+
+        block content
+            style.
+                header{
+                    position: -webkit-sticky;
+                    position: sticky;
+                    top: 0;
+                    background: #00474f;
+                    color: #e7dacb;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    height: 50px;
+                    z-index: 500;
+                }
+
+                @media (min-width: 768px) {
+                    .sidebar {
+                        position: -webkit-sticky;
+                        position: sticky;
+                        top: 4rem;
+                        z-index: 1000;
+                        height: calc(100vh - 4rem);
+                        border-right: 1px solid rgba(0,0,0,.1);
+                        order: 0;
+                        border-bottom: 1px solid rgba(0,0,0,.1);
+                    }
+                    .cat-links {
+                        display: block!important;
+                        max-height: calc(100vh - 9rem);
+                        overflow-y: auto;
+                        padding-top: 1rem;
+                        padding-bottom: 1rem;
+                        margin-right: -15px;
+                        margin-left: -15px;
+                    }
+                    .modal-dialog {
+                        max-width: 800px;
+                    }
+                }
+                .sidebar-link {
+                    display: block;
+                    padding: .25rem 1.5rem;
+                    font-weight: 500;
+                    color: rgba(0,0,0.65)
+                }
+                .sidebar .nav>li>a{
+                    display: block;
+                    padding: .25rem 1.5rem;
+                    font-size: 90%;
+                    color: rgba(0,0,0,.65)
+                }
+                .sidebar-item.active > .sidebar-inner {
+                    display: block;
+                }
+                .card{
+                    margin-bottom: 1.5rem;
+                }
+                .swithcher{
+                    position: relative;
+                    padding: 1rem 15px;
+                    margin-right: -15px;
+                    margin-left: -15px;
+                    border-bottom: 1px solid rgba(0,0,0,.05)
+                }
+                .sidebar-toggle{
+                    line-height: 1;
+                    color: #212529;
+                }
+                .p-0{
+                    padding: 0!important;
+                }
+                .ml-3, .mx-3{
+                    margin-left: 1rem!important;
+                }
+                .btn-link{
+                    font-weight: 400;
+                    color: #007bff;
+                    background-color: transparent;
+                }
+
+            include ./includes/header
+
+            .container-fluid
+                .row
+                    .col-12.col-md-3.col-xl-2.sidebar
+                        .collapse.cat-links
+                            .sidebar-item.active
+                                a.sidebar-link(href='/') Links
+                                ul.nav.sidebar-inner
+                                    li.active.sidebar-inner-active
+                                        a(href='/') Link1
+                                    li.sidebar-inner-active
+                                        a(href='/') Link2
+                    .col-12.col-md-9.col-xl-9.py-md-3.pl-md-5.content
+                        .row
+                            .col-md-6
+                                .card
+                                    img.card-img-top(src="https://img9.doubanio.com/view/photo/l/public/p2567198874.webp",
+                                    data-video="http://vfx.mtime.cn/Video/2017/03/31/mp4/170331093811717750.mp4",
+                                    data-title='小丑 Joker (2019)'
+                                    data-toggle="modal", data-target="#exampleModal")
+                                    .card-body
+                                        h4.card-title 小丑 Joker (2019)
+                                        p.card-desc 这是电影描述
+                                    .card-footer
+                                        small.text-muted 1 天前更新
+                            .col-md-6
+                                .card
+                                    img.card-img-top(src="https://img9.doubanio.com/view/photo/l/public/p2578045524.webp",
+                                    data-video="http://clips.vorwaerts-gmbh.de/big_buck_bunny.mp4",
+                                    data-title='82年生的金智英 82년생 김지영 (2019)'
+                                    data-toggle="modal", data-target="#exampleModal")
+                                    .card-body
+                                        h4.card-title 82年生的金智英 82년생 김지영 (2019)
+                                        p.card-desc 这是电影描述
+                                    .card-footer
+                                        small.text-muted 1 天前更新
+                        .row
+                            .col-md-6
+                                .card
+                                    img.card-img-top(src="https://img9.doubanio.com/view/photo/l/public/p2568902055.webp",
+                                    data-video="http://www.w3school.com.cn/example/html5/mov_bbb.mp4",
+                                    data-title='爱尔兰人 The Irishman'
+                                    data-toggle="modal", data-target="#exampleModal")
+                                    .card-body
+                                        h4.card-title 爱尔兰人 The Irishman
+                                        p.card-desc 这是电影描述
+                                    .card-footer
+                                        small.text-muted 1 天前更新
+                            .col-md-6
+                                .card
+                                    img.card-img-top(src="https://img1.doubanio.com/view/photo/l/public/p2571760178.webp",
+                                    data-video="https://media.w3.org/2010/05/sintel/trailer.mp4",
+                                    data-title='婚姻故事 Marriage Story'
+                                    data-toggle="modal", data-target="#exampleModal")
+                                    .card-body
+                                        h4.card-title 婚姻故事 Marriage Story
+                                        p.card-desc 这是电影描述
+                                    .card-footer
+                                        small.text-muted 1 天前更新
+
+
+            <!-- Modal -->
+            <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Modal title</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div id="dplayer" referrerpolicy ="never"></div>
+                </div>
+                </div>
+            </div>
+            </div>
+
+            include ./includes/script
+
+            script.
+                var player = null
+
+                $(function(){
+                    $('.card-img-top').click(function(){
+                        var title = $(this).data('title')
+                        var video = $(this).data('video')
+                        var image = $(this).attr('src')
+                        $('.modal-title').text(title)
+
+                        player = new DPlayer({
+                            container: document.getElementById('dplayer'),
+                            video: {
+                                url: video,
+                                pic: image,
+                                thumbnails: image
+                            },
+                        });
+                    })
+                })
+        ```
+        ```pug
+        // /server/views/layouts/default.pug
+
+        doctype html
+        html
+            head
+                meta(charset="utf-8")
+                meta(name="viewport", content="width=device-width, initial-scale=1")
+                block title
+                include ../includes/style
+            body
+                block content
+        ```
+        ```pug
+        // /server/views/includes/header.pug
+
+        header.navbar.narbar-expand.navbar-dark.flex-column.flex-md-row
+            a.navbar-brand.mr-0.mr-md-2(href='/') 豆瓣预告片
+            .navbar-nav-scroll
+                ul.navbar-nav.bd-navbar-nav.flex-row
+                    li.nav-item
+                        a.nav-link.active(href='/link1') 快捷连接 1
+        ```
+        ```pug
+        // /server/views/includes/script.pug
+
+        script(src="https://cdn.bootcss.com/jquery/3.4.1/jquery.js")
+        script(src="https://cdn.bootcss.com/bootstrap/4.0.0-beta.2/js/bootstrap.bundle.min.js")
+        script(src="https://cdn.jsdelivr.net/npm/dplayer/dist/DPlayer.min.js")
+        ```
+        ```pug
+        // /server/views/includes/style.pug
+
+        link(href="https://cdn.bootcss.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css" rel="stylesheet")
+        link(href="https://cdn.jsdelivr.net/npm/dplayer/dist/DPlayer.min.css" rel="stylesheet")
+        ```

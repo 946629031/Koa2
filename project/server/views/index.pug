@@ -38,6 +38,9 @@ block content
                 margin-right: -15px;
                 margin-left: -15px;
             }
+            .modal-dialog {
+                max-width: 800px;
+            }
         }
         .sidebar-link {
             display: block;
@@ -97,48 +100,81 @@ block content
                 .row
                     .col-md-6
                         .card
-                            img.card-img-top(src="https://dn-st.teambition.net/site/webpack/images/client/app/homepage/images/banner_1976860d8306356ce84e1c3b0632bc4d.png",
-                            data-video="http://www.w3school.com.cn/example/html5/mov_bbb.mp4")
+                            img.card-img-top(src="https://img9.doubanio.com/view/photo/l/public/p2567198874.webp",
+                            data-video="http://vfx.mtime.cn/Video/2017/03/31/mp4/170331093811717750.mp4",
+                            data-title='小丑 Joker (2019)'
+                            data-toggle="modal", data-target="#exampleModal")
                             .card-body
-                                h4.card-title 这是电影标题
+                                h4.card-title 小丑 Joker (2019)
                                 p.card-desc 这是电影描述
                             .card-footer
                                 small.text-muted 1 天前更新
                     .col-md-6
                         .card
-                            img.card-img-top(src="https://dn-st.teambition.net/site/webpack/images/client/app/homepage/images/banner_1976860d8306356ce84e1c3b0632bc4d.png",
-                            data-video="https://media.w3.org/2010/05/sintel/trailer.mp4")
+                            img.card-img-top(src="https://img9.doubanio.com/view/photo/l/public/p2578045524.webp",
+                            data-video="http://clips.vorwaerts-gmbh.de/big_buck_bunny.mp4",
+                            data-title='82年生的金智英 82년생 김지영 (2019)'
+                            data-toggle="modal", data-target="#exampleModal")
                             .card-body
-                                h4.card-title 这是电影标题
+                                h4.card-title 82年生的金智英 82년생 김지영 (2019)
+                                p.card-desc 这是电影描述
+                            .card-footer
+                                small.text-muted 1 天前更新
+                .row
+                    .col-md-6
+                        .card
+                            img.card-img-top(src="https://img9.doubanio.com/view/photo/l/public/p2568902055.webp",
+                            data-video="http://www.w3school.com.cn/example/html5/mov_bbb.mp4",
+                            data-title='爱尔兰人 The Irishman'
+                            data-toggle="modal", data-target="#exampleModal")
+                            .card-body
+                                h4.card-title 爱尔兰人 The Irishman
+                                p.card-desc 这是电影描述
+                            .card-footer
+                                small.text-muted 1 天前更新
+                    .col-md-6
+                        .card
+                            img.card-img-top(src="https://img1.doubanio.com/view/photo/l/public/p2571760178.webp",
+                            data-video="https://media.w3.org/2010/05/sintel/trailer.mp4",
+                            data-title='婚姻故事 Marriage Story'
+                            data-toggle="modal", data-target="#exampleModal")
+                            .card-body
+                                h4.card-title 婚姻故事 Marriage Story
                                 p.card-desc 这是电影描述
                             .card-footer
                                 small.text-muted 1 天前更新
 
-    <div id="dplayer"></div>
 
-    //- <video class='video' controls="controls" controls="controls">
-    //-     <source src="http://vt1.doubanio.com/202001091419/f4c57327dd4d80f80cfb8a13ece8cd3c/view/movie/M/402570470.mp4" type="video/mp4" />
-    //-     Your browser does not support the video tag.
-    //- </video>
-
-    //- #myModal.modal.fade.bd-example-modal-lg(tabindex="-1", role="dialog", aria-labelledby="myLargeModalLabel", aria-hidden="true")
-    //-     .modal-dialog.modal-lg
-    //-         #videoModal.modal-content
+    <!-- Modal -->
+    <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title" id="exampleModalLabel">Modal title</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        <div class="modal-body">
+            <div id="dplayer" referrerpolicy ="never"></div>
+        </div>
+        </div>
+    </div>
+    </div>
 
     include ./includes/script
 
     script.
-
-
         var player = null
-        $(function(){
 
+        $(function(){
             $('.card-img-top').click(function(){
+                var title = $(this).data('title')
                 var video = $(this).data('video')
                 var image = $(this).attr('src')
-                console.log(video)
+                $('.modal-title').text(title)
 
-                player= new DPlayer({
+                player = new DPlayer({
                     container: document.getElementById('dplayer'),
                     video: {
                         url: video,
@@ -148,48 +184,3 @@ block content
                 });
             })
         })
-
-
-
-
-
-
-        //- var player = null
-
-        //- $(document).ready(function(){
-        //-     //- $('#myModal').on('hidden.bs.modal', function (e){
-        //-     //-     if (play && play.pause) player.pause()
-        //-     //- })
-            
-        //-     //- $('.card-img-top').click(function(e){
-        //-     //-     $('video').show()
-        //-     //- })
-
-
-        //-     $('.card-img-top').click(function(e){
-        //-         var video = $(this).data('video')
-        //-         var image = $(this).attr('src')
-        //-         console.log(12)
-        //-         console.log(video)
-
-        //-         if(!player){
-        //-             player = new DPlayer({
-        //-                 container: document.getElementById('videoModal'),
-        //-                 screenshot: true,
-        //-                 video: {
-        //-                     url: video,
-        //-                     pic: image,
-        //-                     thumbnails: image
-        //-                 }
-        //-             })
-        //-         } else {
-        //-             if (player.video.currentSrc !== video){
-        //-                 player.switchVideo({
-        //-                     url: video,
-        //-                     pic: image,
-        //-                     type: 'auto'
-        //-                 })
-        //-             }
-        //-         }
-        //-     })
-        //- })
