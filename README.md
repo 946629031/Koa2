@@ -2498,15 +2498,59 @@
 
 # 第6章 利用爬虫搞定网站基础数据
 - ## 6-1 设计与分析
-    ```mermaid
-    graph LR
-    A[Hard edge] -->B(Round edge)
-        B --> C{Decision}
-        C -->|One| D[Result one]
-        C -->|Two| E[Result two]
-    ​```
+    - 网站框架上 骨架， 网站数据才是 血肉
 
+    ```
+    ···············
+    ·             ·
+    ·   动态网站   ·
+    ·             ·
+    ···············
+
+        - 静态网站
+        - 数据服务
+
+        - Koa2
+            - 父子进程通信
+
+        - 数据爬取
+            - 储存
+                - MongoDB
+                - MySQL
+            - 获取
+                - 模拟浏览器
+                    - phantomJS
+                    - NightMare
+                    - pupeteer
+
+                - API同步接口
 - ## 6-2 利用 puppeteer 爬取和分析电影列表
+    - ### 什么是 Puppeteer ？
+        - [Puppeteer github](https://github.com/puppeteer/puppeteer)
+        - Puppeteer 可以简单理解为 它能够模拟浏览器
+        - 官方解释：Puppeteer 是 Google Chrome 团队官方的无界面（Headless）Chrome 工具
+            - Chrome Headless 必将成为 web 应用 **`自动化测试`** 的行业标杆
+    - ### 如何使用 Puppeteer ?
+        - 安装 `npm i puppeteer`
+        - 示例
+            - 对于如何使用 Puppeteer，这非常之容易；如下简易的示例，即实现了：导航到 https://example.com 并将截屏保存为 example.png；
+            ```js
+            const puppeteer = require('puppeteer');
+
+            (async () => {
+            const browser = await puppeteer.launch();
+            const page = await browser.newPage();
+            await page.goto('https://example.com');
+            await page.screenshot({path: 'example.png'});
+            await browser.close();
+            })();
+            ```
+    ```js
+    // /server/crawler/trailer-list.js
+    ```
+
+    12:51
+
 - ## 6-3 child_process fork 子进程来运行爬虫脚本
 - ## 6-4 服务器端通过 request 向豆瓣 api 请求详细数据
 - ## 6-5 scott 与妹子合租引发的同步异步与阻塞
