@@ -1,6 +1,5 @@
 const puppeteer = require('puppeteer')
 
-
 console.log('You in...')
 
 const url = 'https://movie.douban.com/explore#!type=movie&tag=%E7%83%AD%E9%97%A8&sort=rank&page_limit=20&page_start=0'
@@ -48,8 +47,6 @@ const sleep = time => new Promise( resolve => {
 
                 if(title){
                     title = title.replace(/[\s|\n\r]/g, '').replace(/<strong>([\s\S]*?)<\/strong>/, '')
-                    // title = title.replace(/<strong>([\s\S]*?)<\/strong>/, '')
-                    // title = title.replace(replace_str1, '').replace(replace_str2, '').replace(replace_str3, '')
                 }
                 if(poster){ // 如果存在。 如果不判断 可能会报错
                     poster = poster.replace('s_ratio', 'l_ratio')   // 将小图片 换成大图片
@@ -71,17 +68,6 @@ const sleep = time => new Promise( resolve => {
 
     console.log(result)
 
-
+    process.send({result})
+    process.exit(0)
 })()
-
-'\n' +
-      '                \n' +
-      '\n' +
-      '                我和我的祖国\n' +
-      '\n' +
-      '                \n' +
-      '                    <strong>7.8</strong>\n' +
-      '                \n' +
-      '            '
-
-      

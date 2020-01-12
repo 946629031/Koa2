@@ -2547,11 +2547,257 @@
             ```
     ```js
     // /server/crawler/trailer-list.js
+    const puppeteer = require('puppeteer')
+
+    console.log('You in...')
+
+    const url = 'https://movie.douban.com/explore#!type=movie&tag=%E7%83%AD%E9%97%A8&sort=rank&page_limit=20&page_start=0'
+
+    const sleep = time => new Promise( resolve => {
+        setTimeout(resolve, time)
+    })
+
+    ;(async () => {
+        console.log('Start visit the target page...')
+
+        const browser = await puppeteer.launch({
+            args: ['--no-sandbox'],
+            dumpio: false
+        })
+
+        const page = await browser.newPage()
+        await page.goto(url, {
+            waitUntil: 'networkidle2'    // 当网络空闲时。说明网络资源加载完毕
+        })
+
+        await sleep(3000)   // 网络空闲时，再继续等待3秒
+
+        await page.waitForSelector('.more')   // class='more' 的 div
+
+        for (let i = 0; i < 1; i++ ) {         // 只点击按钮一次
+            await sleep(3000)
+            await page.click('.more')
+        }
+
+
+        // 获取网页内容
+        const result = await page.evaluate(() => {
+            var $ = window.$        // 由于页面中 本身加载了 jQuery，所以这里直接使用就行
+            var items = $('.list-wp a')        // 获取本页面 所有电影列表的 item
+            var links = []
+
+            if (items.length >= 1) {           // 如果items 不为空
+                items.each((index, item) => {
+                    let it = $(item)
+                    let doubanID = it.find('div').data('id')
+                    let title = it.find('p').html()
+                    let rate = Number(it.find('strong').text())
+                    let poster = it.find('img').attr('src')
+
+                    if(title){
+                        title = title.replace(/[\s|\n\r]/g, '').replace(/<strong>([\s\S]*?)<\/strong>/, '')
+                    }
+                    if(poster){ // 如果存在。 如果不判断 可能会报错
+                        poster = poster.replace('s_ratio', 'l_ratio')   // 将小图片 换成大图片
+                    }
+
+                    links.push({
+                        doubanID,
+                        title,
+                        rate,
+                        poster
+                    })
+                })
+            }
+
+            return links
+        })
+
+        browser.close()
+
+        console.log(result)
+
+    })()
     ```
 
-    12:51
+    - 执行脚本 `node server/crawler/trailer-list.js` ，然后会打印出下面结果
+        ```js
+        [
+            {
+                doubanID: 6981153,
+                title: '爱尔兰人',
+                rate: 9,
+                poster: 'https://img9.doubanio.com/view/photo/l_ratio_poster/public/p2568902055.jpg'
+            },
+            {
+                doubanID: 27119724,
+                title: '小丑',
+                rate: 8.7,
+                poster: 'https://img9.doubanio.com/view/photo/l_ratio_poster/public/p2567198874.jpg'
+            },
+            {
+                doubanID: 26100958,
+                title: '复仇者联盟4：终局之战',
+                rate: 8.5,
+                poster: 'https://img9.doubanio.com/view/photo/l_ratio_poster/public/p2552058346.jpg'
+            },
+            // ...
+        ]
+        ```
 
 - ## 6-3 child_process fork 子进程来运行爬虫脚本
+    - 对于一个网站，我们通常提到一个词 —— **`可用性`**
+        - 换一个词来描述，就是 **`稳定`**
+        - 服务器上运行的程序、提供的服务 要足够的稳定，不能说挂就挂了
+    - 而在 Node.js 它天生就是单线程的，这时候 如果我们在 Node.js 里面跑一个比较 重的服务的话，很容易导致 服务器整个挂掉
+        - 所以，我们为了不让 服务器有挂掉的风险，我们会在 服务器 里，起若干个 **`子进程`** 来跑一些其他程序，降低服务器 挂掉的风险
+        - 这样的话，即使 子进程挂了，主进程还健在
+        ```
+        ···············
+        ·             ·
+        ·   进程模型   ·
+        ·             ·
+        ···············
+
+            - 子进程模型
+
+            - 进程的9个问题
+                - 什么是同步异步
+                - 什么是异步IO
+                - 什么是阻塞非阻塞
+                - 什么是事件循环与事件驱动
+                - 什么是单线程
+                - 什么是进程
+                - 什么是子进程
+                - 怎样启动子进程
+                - 进程间如何通信
+
+        ```
+    - fork 可以派生出一个子进程
+    ```js
+    // /server/tasks/movie.js
+
+    const cp = require('child_process')
+    const { resolve } = require('path')
+
+    ;(async () => {     // 自动执行函数
+        const script = resolve(__dirname, '../crawler/trailer-list')
+        const child = cp.fork(script, [])       // fork 可以派生出一个子进程。通过 child_process.fork 来执行我们要 跑的脚本
+        let invoked = false             // 表示 这个脚本是否有 执行过
+
+        child.on('error', err => {
+            if (invoked) return         // 如果执行过，直接 return
+
+            invoked = true
+
+            console.log(err)
+        })
+
+        child.on('exit', code => {
+            if (invoked) return
+
+            invoked = false
+            let err = code === 0 ? null : new Error('exit code ' + code)
+
+            console.log(err)
+        })
+
+        child.on('message', data => {
+            let result = data.result
+
+            console.log(result)
+        })
+
+    })()
+    ```
+    - 在我们上一节的代码中，只是 简单的 拿到了信息，然后打印了一下
+        - 现在我们加上
+        ```js
+        // ...
+
+        process.send({result})      // 将结果发送出去
+        process.exit(0)             // 退出程序
+        ```
+        
+    ```js
+    // /server/crawler/trailer-list.js
+
+    const puppeteer = require('puppeteer')
+
+    console.log('You in...')
+
+    const url = 'https://movie.douban.com/explore#!type=movie&tag=%E7%83%AD%E9%97%A8&sort=rank&page_limit=20&page_start=0'
+
+    const sleep = time => new Promise( resolve => {
+        setTimeout(resolve, time)
+    })
+
+    ;(async () => {
+        console.log('Start visit the target page...')
+
+        const browser = await puppeteer.launch({
+            args: ['--no-sandbox'],
+            dumpio: false
+        })
+
+        const page = await browser.newPage()
+        await page.goto(url, {
+            waitUntil: 'networkidle2'    // 当网络空闲时。说明网络资源加载完毕
+        })
+
+        await sleep(3000)   // 网络空闲时，再继续等待3秒
+
+        await page.waitForSelector('.more')   // class='more' 的 div
+
+        for (let i = 0; i < 1; i++ ) {         // 只点击按钮一次
+            await sleep(3000)
+            await page.click('.more')
+        }
+
+
+        // 获取网页内容
+        const result = await page.evaluate(() => {
+            var $ = window.$        // 由于页面中 本身加载了 jQuery，所以这里直接使用就行
+            var items = $('.list-wp a')        // 获取本页面 所有电影列表的 item
+            var links = []
+
+            if (items.length >= 1) {           // 如果items 不为空
+                items.each((index, item) => {
+                    let it = $(item)
+                    let doubanID = it.find('div').data('id')
+                    let title = it.find('p').html()
+                    let rate = Number(it.find('strong').text())
+                    let poster = it.find('img').attr('src')
+
+                    if(title){
+                        title = title.replace(/[\s|\n\r]/g, '').replace(/<strong>([\s\S]*?)<\/strong>/, '')
+                    }
+                    if(poster){ // 如果存在。 如果不判断 可能会报错
+                        poster = poster.replace('s_ratio', 'l_ratio')   // 将小图片 换成大图片
+                    }
+
+                    links.push({
+                        doubanID,
+                        title,
+                        rate,
+                        poster
+                    })
+                })
+            }
+
+            return links
+        })
+
+        browser.close()
+
+        console.log(result)
+
+        process.send({result})      // 将结果发送出去
+        process.exit(0)             // 退出程序
+    })()
+    ```
+    - 执行代码 验证一下 `node server/tasks/movies.js`
+
 - ## 6-4 服务器端通过 request 向豆瓣 api 请求详细数据
 - ## 6-5 scott 与妹子合租引发的同步异步与阻塞
 - ## 6-6 puppeteer 深度爬取封面图和视频地址
