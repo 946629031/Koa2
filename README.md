@@ -2696,7 +2696,7 @@
         child.on('exit', code => {
             if (invoked) return
 
-            invoked = false
+            invoked = true
             let err = code === 0 ? null : new Error('exit code ' + code)
 
             console.log(err)
@@ -2715,7 +2715,7 @@
         ```js
         // ...
 
-        process.send({result})      // 将结果发送出去
+        process.send({result})      // 将结果发送出去
         process.exit(0)             // 退出程序
         ```
         
@@ -2792,13 +2792,225 @@
 
         console.log(result)
 
-        process.send({result})      // 将结果发送出去
+        process.send({result})      // 将结果发送出去
         process.exit(0)             // 退出程序
     })()
     ```
     - 执行代码 验证一下 `node server/tasks/movies.js`
 
 - ## 6-4 服务器端通过 request 向豆瓣 api 请求详细数据
+    - 前言
+        - 互联网上的 **`信息传递`**，都是基于各种 **`请求和返回`** , 比如说基于 TCP/IP 的 HTTP 协议
+        - 而上节课 我们的方法 比较不一样，他是在本地 启动一个 puppeteer 无界面浏览器（Headless browser），**`来爬一些 比较难以爬取的数据`**
+            - 请求网页 -》 分析文本 -》 提取目标信息
+        - 本节，我们介绍 平常 服务器端 对 服务器端 的数据请求 ，也就是 HTTP 协议请求
+    - 搜索 `douban API` , 找到 豆瓣API 官网 https://douban-api-docs.zce.me/
+        - 找到 电影条目信息 https://douban-api-docs.zce.me/movie.html#subject
+    - 遇到的问题
+        - 豆瓣接口调用失败
+            - http://api.douban.com/v2/movie/subject/1764796
+            - 当我直接访问上面的连接时，回返回下面的 错误提示
+            ```
+            {
+                msg: "invalid_apikey, Please contact bd-team@douban.com for authorized access.",
+                code: 104,
+                request: "GET /v2/movie/subject/1764796"
+            }
+            ```
+        - 解:
+            - 豆瓣API有变化，需要在请求API的url后面跟一个apikey参数：
+
+            - 电影列表API：http://api.douban.com/v2/movie/in_theaters?apikey=0df993c66c0c636e29ecbb5344252a4a&start=0&count=10
+
+            - 电影详情API：`http://api.douban.com/v2/movie/subject/${event.movieid}?apikey=0df993c66c0c636e29ecbb5344252a4a`
+        - 最终解：http://api.douban.com/v2/movie/subject/1764796?apikey=0df993c66c0c636e29ecbb5344252a4a
+
+    - 安装 `npm i request-promise-native`
+        - `npm i request`
+
+    ```js
+    // /server/tasks/douban_api.js
+
+    // http://api.douban.com/v2/movie/subject/1764796?apikey=0df993c66c0c636e29ecbb5344252a4a
+
+
+    const rp = require('request-promise-native')    // 引入发起请求的库.  request-promise-native 实际上就是 request 的上层封装
+
+    async function fetchMovie (item) {
+        const url = `http://api.douban.com/v2/movie/subject/${item.doubanID}?apikey=0df993c66c0c636e29ecbb5344252a4a`
+
+        const res = await rp(url)
+
+        return res
+    }
+
+    ;(async () => {
+        let movies = [
+            {
+                doubanID: 27119724,
+                title: '小丑',
+                rate: 8.7,
+                poster: 'https://img9.doubanio.com/view/photo/l_ratio_poster/public/p2567198874.jpg'
+            },
+            {
+                doubanID: 26100958,
+                title: '复仇者联盟4：终局之战',
+                rate: 8.5,
+                poster: 'https://img9.doubanio.com/view/photo/l_ratio_poster/public/p2552058346.jpg'
+            }
+        ]
+
+        movies.map(async movie => {     // 遍历数组
+            let movieData = await fetchMovie(movie)
+
+            console.log(movieData)
+        })
+
+    })()
+    ```
+    - 执行脚本 能打印出爬出结果，即为 脚本没有错误
+
 - ## 6-5 scott 与妹子合租引发的同步异步与阻塞
 - ## 6-6 puppeteer 深度爬取封面图和视频地址
+    - 本节目标：
+        - 爬取 视频地址
+        - 爬取 视频封面图
+    ```js
+    // /server/crawler/movie.js
+
+    const puppeteer = require('puppeteer')
+
+    console.log('You in...')
+
+    const url = 'https://movie.douban.com/subject/'
+    const doubanID = 1652592
+    // const video = 'https://movie.douban.com/trailer/243269/'
+
+    const sleep = time => new Promise( resolve => {
+        setTimeout(resolve, time)
+    })
+
+    ;(async () => {
+        console.log('Start visit the target page...')
+
+        const browser = await puppeteer.launch({
+            args: ['--no-sandbox'],
+            dumpio: false
+        })
+
+        const page = await browser.newPage()
+        await page.goto( url + doubanID, {
+            waitUntil: 'networkidle2'    // 当网络空闲时。说明网络资源加载完毕
+        })
+
+        await sleep(3000)   // 网络空闲时，再继续等待3秒
+
+        // 获取网页内容
+        const result = await page.evaluate(() => {
+            var $ = window.$        // 由于页面中 本身加载了 jQuery，所以这里直接使用就行
+            var it = $('.related-pic-video')
+
+            if ( it && it.length > 0 ) {        // 如果这个 div 存在
+                var link = it.attr('href')
+                var coverImage = it.attr('style')
+                
+                return {
+                    link,
+                    coverImage
+                }
+            }
+
+            return {}
+        })
+
+
+
+        let video
+
+        if (result.link) {      // 如果有视频 预告片
+            await page.goto(result.link, {      // page.goto   页面跳转
+                waitUntil: 'networkidle2'
+            })
+            await sleep(2000)
+
+            video = await page.evaluate( () => {
+                var $ = window.$    // 获取 jquery
+                var it = $('source')
+
+                if ( it && it.length > 0 ) {
+                    return it.attr('src')
+                }
+
+                return ''   // 如果没有视频
+            })
+        }
+
+        // 数据拼装
+        const data = {
+            doubanID,
+            coverImage: result.coverImage,
+            video
+        }
+
+
+        browser.close()
+
+        console.log(data)
+
+        process.send(data)      // 将结果发送出去
+        process.exit(0)             // 退出程序
+    })()
+    ```
+    ```js
+    // /server/tasks/trailer.js
+
+    const cp = require('child_process')
+    const { resolve } = require('path')
+
+    ;(async () => {     // 自动执行函数
+        const script = resolve(__dirname, '../crawler/movie')
+        const child = cp.fork(script, [])       // fork 可以派生出一个子进程。通过 child_process.fork 来执行我们要 跑的脚本
+        let invoked = false             // 表示 这个脚本是否有 执行过
+
+        child.on('error', err => {
+            if (invoked) return         // 如果执行过，直接 return
+
+            invoked = true
+
+            console.log(err)
+        })
+
+        child.on('exit', code => {
+            if (invoked) return
+
+            invoked = true
+            let err = code === 0 ? null : new Error('exit code ' + code)
+
+            console.log(err)
+        })
+
+        child.on('message', data => {
+            console.log(data)
+        })
+
+    })()
+    ```
+    - 执行脚本 `node server/tasks/trailer.js`
+    - 打印结果
+        ```
+        You in...
+        Start visit the target page...
+        {
+        doubanID: 1652592,
+        coverImage: 'background-image:url(https://img1.doubanio.com/img/trailer/medium/2545038147.jpg?)',
+        video: 'http://vt1.doubanio.com/202001121811/3c584fc7b6d3bf46a64cd4c1fd90ad4a/view/movie/M/402410829.mp4'
+        }
+        {
+        doubanID: 1652592,
+        coverImage: 'background-image:url(https://img1.doubanio.com/img/trailer/medium/2545038147.jpg?)',
+        video: 'http://vt1.doubanio.com/202001121811/3c584fc7b6d3bf46a64cd4c1fd90ad4a/view/movie/M/402410829.mp4'
+        }
+        null
+        ```
+
 - ## 6-7 上传线上封面图和视频搬砖到七牛云图床上

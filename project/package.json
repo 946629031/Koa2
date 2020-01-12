@@ -23,7 +23,9 @@
     "node-fetch": "^2.6.0",
     "nodemon": "^2.0.2",
     "pug": "^2.0.4",
-    "puppeteer": "^2.0.0"
+    "puppeteer": "^2.0.0",
+    "request": "^2.88.0",
+    "request-promise-native": "^1.0.8"
   },
   "devDependencies": {
     "babel-cli": "^6.26.0",
