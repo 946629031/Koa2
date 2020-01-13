@@ -1,7 +1,7 @@
 # Node.js Koa2框架搭建电影预告片网站
 - Node.js Koa2 the movie trailer site
 
-- 视频课程出品时间：2018年
+- 视频课程出品时间：2018年 年初
 
 ----
 
@@ -49,7 +49,7 @@
     - [6-6 puppeteer 深度爬取封面图和视频地址](#6-6-puppeteer-深度爬取封面图和视频地址)
     - [6-7 上传线上封面图和视频搬砖到七牛云图床上](#6-7-上传线上封面图和视频搬砖到七牛云图床上)
 - [第7章 彩蛋篇 - [高难度拔高干货] 深度理解 Node.js 异步 IO 模型](#第7章-彩蛋篇---[高难度拔高干货]-深度理解-Node.js-异步-IO-模型)
-    - [7-1 从异步非阻塞的代码案例切入事件循环](#7-1-从异步非阻塞的代码案例切入事件循环)
+    - [7-1 前言](#7-1-前言)
     - [7-2 从异步非阻塞的代码案例切入事件循环](#7-2-从异步非阻塞的代码案例切入事件循环)
     - [7-3 从libuv 源码来理解event loop的六个阶段](#7-3-从libuv-源码来理解event-loop的六个阶段)
     - [7-4 设计一个测试用例来验证自己对事件循环的理解](#7-4-设计一个测试用例来验证自己对事件循环的理解)
@@ -2652,27 +2652,6 @@
     - 而在 Node.js 它天生就是单线程的，这时候 如果我们在 Node.js 里面跑一个比较 重的服务的话，很容易导致 服务器整个挂掉
         - 所以，我们为了不让 服务器有挂掉的风险，我们会在 服务器 里，起若干个 **`子进程`** 来跑一些其他程序，降低服务器 挂掉的风险
         - 这样的话，即使 子进程挂了，主进程还健在
-        ```
-        ···············
-        ·             ·
-        ·   进程模型   ·
-        ·             ·
-        ···············
-
-            - 子进程模型
-
-            - 进程的9个问题
-                - 什么是同步异步
-                - 什么是异步IO
-                - 什么是阻塞非阻塞
-                - 什么是事件循环与事件驱动
-                - 什么是单线程
-                - 什么是进程
-                - 什么是子进程
-                - 怎样启动子进程
-                - 进程间如何通信
-
-        ```
     - fork 可以派生出一个子进程
     ```js
     // /server/tasks/movie.js
@@ -3001,16 +2980,252 @@
         You in...
         Start visit the target page...
         {
-        doubanID: 1652592,
-        coverImage: 'background-image:url(https://img1.doubanio.com/img/trailer/medium/2545038147.jpg?)',
-        video: 'http://vt1.doubanio.com/202001121811/3c584fc7b6d3bf46a64cd4c1fd90ad4a/view/movie/M/402410829.mp4'
+            doubanID: 1652592,
+            coverImage: 'background-image:url(https://img1.doubanio.com/img/trailer/medium/2545038147.jpg?)',
+            video: 'http://vt1.doubanio.com/202001121811/3c584fc7b6d3bf46a64cd4c1fd90ad4a/view/movie/M/402410829.mp4'
         }
         {
-        doubanID: 1652592,
-        coverImage: 'background-image:url(https://img1.doubanio.com/img/trailer/medium/2545038147.jpg?)',
-        video: 'http://vt1.doubanio.com/202001121811/3c584fc7b6d3bf46a64cd4c1fd90ad4a/view/movie/M/402410829.mp4'
+            doubanID: 1652592,
+            coverImage: 'background-image:url(https://img1.doubanio.com/img/trailer/medium/2545038147.jpg?)',
+            video: 'http://vt1.doubanio.com/202001121811/3c584fc7b6d3bf46a64cd4c1fd90ad4a/view/movie/M/402410829.mp4'
         }
         null
         ```
 
 - ## 6-7 上传线上封面图和视频搬砖到七牛云图床上
+    - 由于这个节课 视频文件是 .exe ，下载最新 迅雷影音 双击即可播放
+    - 为啥要另外上传到 **`对象存储`** 上？
+        - 因为网络资源 有时候会不稳定，现在能访问，过一会就可能 无法访问了，**`数据源不可靠`**
+        - 所以，我们要把它下载下来，保存在 自己可控 的地方
+        - 但是，由于视频什么的，文件体积非常大，保存到服务器中，又很占地方
+        - 所以，我们把 数据 上传到第三方的 **`对象存储`** 是最合适的
+
+
+
+# 第7章 彩蛋篇 - [高难度拔高干货] 深度理解 Node.js 异步 IO 模型
+
+        ```
+        ···············
+        ·             ·
+        ·   进程模型   ·
+        ·             ·
+        ···············
+
+            - 子进程模型
+
+            - 进程的9个问题
+                - 什么是同步异步
+                - 什么是异步IO
+                - 什么是阻塞非阻塞
+                - 什么是事件循环与事件驱动
+                - 什么是单线程
+                - 什么是进程
+                - 什么是子进程
+                - 怎样启动子进程
+                - 进程间如何通信
+
+        ```
+- ## 7-1 前言
+- ## 7-2 从异步非阻塞的代码案例切入事件循环
+    - 什么是IO？
+        - Input / Output
+        - 说白了，就是数据的进出
+    - 3个线索
+        - process.nextTick 优先级
+        - libuv 相关知识
+        - eventEmitter 
+    - ### 看下面代码，先自己 预测一下 它们的执行顺序，然后再执行代码 验证结果
+    ```js
+    const { readFile } = require('fs')
+    const EventEmitter = require('events')
+
+    class EE extends EventEmitter {}
+
+    const yy = new EE()
+
+    yy.on('event', () => {
+        console.log('出大事了！')
+    })
+
+    setTimeout(() => {
+        console.log('0 毫秒后到期执行的定时器回调')
+    }, 0)
+
+    setTimeout(() => {
+        console.log('100 毫秒后到期执行的定时器回调')
+    }, 100)
+
+    setTimeout(() => {
+        console.log('200 毫秒后到期执行的定时器回调')
+    }, 200)
+
+    readFile('../package.json', 'utf-8', data => {
+        console.log('完成文件 1 读取操作的回调')
+    })
+
+    readFile('../README.md', 'utf-8', data => {
+        console.log('完成文件 2 读取操作的回调')
+    })
+
+    setImmediate(() => {
+        console.log('immediate 立即回调')
+    })
+
+    process.nextTick(() => {
+        console.log('process.nextTick 的回调')
+    })
+
+    Promise.resolve()
+        .then(() => {
+            yy.emit('event')
+
+            process.nextTick(() => {
+                console.log('process.nextTick 的第 2 次回调')
+            })
+
+            console.log('Promise 的第 1 次回调')
+        })
+        .then(() => {
+            console.log('Promise 的第 2 次回调')
+        })
+    ```
+    
+- ## 7-3 从libuv 源码来理解event loop的六个阶段
+    - 前言
+        - Node.js 采用 Google Chrome V8 作为脚本解释引擎
+        - 在 处理 IO 方面，采用的是 自家设计的 libuv
+            - libuv 是一座桥 ，它封装了 针对不同系统的 IO 操作，向上呢 对 Node.js 提供了一致的 异步非阻塞接口 和 事件循环
+            - 当我们讨论 事件循环 的时候，往往都和 libuv 息息相关，下面 我们来看 libuv 的代码
+    - 打开 libuv github 代码
+        - https://github.com/libuv/libuv
+        - 按 t 键会打开一个文件浏览器，搜索 `core.c`, 选择 `unix/core.c` 文件
+        - 看里面的 核心函数 `uv_run()`
+            - `uv_loop_t` 就是事件循环结构, 每次执行 `uv_run` 的时候 都会执行 **`事件循环迭代`** ( iteration )
+            - **`迭代`** ( iteration )，我们之前的课程 也介绍过：把一个对象 内部运行的几个状态 通过 next() 这样的语法糖 可以把 它一层层的迭代完毕
+            - 这里 uv_run() 也是一样的
+        - 里面有个 while , 会依次去执行 
+            ```c
+            uv__update_time()
+            uv__run_timers()
+            uv__run_pending()
+            uv__run_idle()
+            uv__run_prepare()
+            uv__io_poll()
+            uv__run_check()
+            uv__run_closing_handles()
+            ```
+            - 这8个函数 可以看作是 头尾相连 的阶段，它们串起来 就组成了 **`事件循环的完整过程`**
+                - 所谓的循环 就是这个 while 的循环了
+                - 所谓的处理顺序 无非就是这几个 函数调用来 调用去
+                - 事件循环 (event loop) 每次跑一圈 都是经过这里面的几个阶段
+            - 但是 这几个函数是做什么的呢？
+                - https://nodejs.org/en/docs/guides/event-loop-timers-and-nexttick/
+                - 这篇文章 非常完整的介绍了 Node.js 的事件循环模型
+                - ### 什么是事件循环？
+                    - 事件循环 就是允许 node.js 去执行一些 异步非阻塞的操作，因为 js 是单线程的，所以 这些异步操作 都交给 **操作系统的内核** 去做。操作系统 基本都是 多线程的，可以在后台 同时处理 多个不同的操作。
+                    - 一旦 某个操作完成了 比如说 文件读取到了，内核 就会通知 node.js 在合适的时机 去执行一个回调函数。
+                    - 而这个时机，就是 我们上面提到的 uv_run() 里的 8个函数
+                - ### 事件循环说明 Event Loop Explained
+                    - 这个 8个函数 有自己的执行顺序
+                    - 这个顺序 就是 下面这张图
+                    - node.js 在启动的时候会 **`初始化事件循环`**
+                    - 然后 处理在 node.js 中运行的代码，这些代码中 包含各种 api 的调用
+                    - 然后才运行事件循环
+                    ```
+                       ┌───────────────────────────┐
+                    ┌─>│           timers          │
+                    │  └─────────────┬─────────────┘
+                    │  ┌─────────────┴─────────────┐
+                    │  │   pending callbacks (I/O) │
+                    │  └─────────────┬─────────────┘
+                    │  ┌─────────────┴─────────────┐
+                    │  │       idle, prepare       │
+                    │  └─────────────┬─────────────┘      ┌───────────────┐
+                    │  ┌─────────────┴─────────────┐      │   incoming:   │
+                    │  │           poll            │<─────┤  connections, │
+                    │  └─────────────┬─────────────┘      │   data, etc.  │
+                    │  ┌─────────────┴─────────────┐      └───────────────┘
+                    │  │           check           │
+                    │  └─────────────┬─────────────┘
+                    │  ┌─────────────┴─────────────┐
+                    └──┤      close callbacks      │
+                       └───────────────────────────┘
+                    ```
+                    - 它把 idle, prepare 并成了一个，而且 拿掉了 uv__update_time(), 整理成了 6个阶段
+                    - 第一阶段：timmer
+                        - setTimeout, setInterval 在这个阶段被执行。这个阶段 对应的 源代码 就是 `uv__run_timers()`
+                    - 第二阶段：pending callbacks (I/O callbacks) 
+                        - 执行一些错误处理，如 socket , stream , TCP , Pipe。这个阶段 对应的 源代码 就是 `uv__run_pending`
+                    - 第三阶段：
+                    - 第四阶段：poll 轮循阶段
+                        - 向系统去获取 新的 I/O 事件，执行对应的 I/O 回调
+
+
+
+
+--------------  05:40 -------------
+
+
+
+
+
+
+                    - 第三阶段：
+                    - 第三阶段：
+                    - 第三阶段：
+        ```c
+        /* /src/unix/core.c */
+
+        int uv_run(uv_loop_t* loop, uv_run_mode mode) {
+          int timeout;
+          int r;
+          int ran_pending;
+
+          r = uv__loop_alive(loop);
+          if (!r)
+            uv__update_time(loop);
+
+          while (r != 0 && loop->stop_flag == 0) {
+            uv__update_time(loop);
+            uv__run_timers(loop);
+            ran_pending = uv__run_pending(loop);
+            uv__run_idle(loop);
+            uv__run_prepare(loop);
+
+            timeout = 0;
+            if ((mode == UV_RUN_ONCE && !ran_pending) || mode == UV_RUN_DEFAULT)
+              timeout = uv_backend_timeout(loop);
+
+            uv__io_poll(loop, timeout);
+            uv__run_check(loop);
+            uv__run_closing_handles(loop);
+
+            if (mode == UV_RUN_ONCE) {
+              /* UV_RUN_ONCE implies forward progress: at least one callback must have
+              * been invoked when it returns. uv__io_poll() can return without doing
+              * I/O (meaning: no callbacks) when its timeout expires - which means we
+              * have pending timers that satisfy the forward progress constraint.
+              *
+              * UV_RUN_NOWAIT makes no guarantees about progress so it's omitted from
+              * the check.
+              */
+              uv__update_time(loop);
+              uv__run_timers(loop);
+            }
+
+            r = uv__loop_alive(loop);
+            if (mode == UV_RUN_ONCE || mode == UV_RUN_NOWAIT)
+              break;
+          }
+
+          /* The if statement lets gcc compile it to a conditional store. Avoids
+          * dirtying a cache line.
+          */
+          if (loop->stop_flag != 0)
+            loop->stop_flag = 0;
+
+          return r;
+        }
+        ```
+
+- ## 7-4 设计一个测试用例来验证自己对事件循环的理解
