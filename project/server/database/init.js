@@ -1,16 +1,12 @@
 const mongoose = require('mongoose')
 const DATABASE_URL = 'mongodb://localhost/douban-trailer' // 数据库地址
 // const DATABASE_URL = 'mongodb://127.0.0.1:27017/'
+const glob = require('glob')    // 允许你用*号  这种匹配符号  来写一个匹配规则
+const { resolve } = require('path')
 
 mongoose.Promise = global.Promise               // 指定 Promise 是 node 原生 promise，而不是 mongoose 自带的 promise
 
 function _connect() {
-    // console.log('you in _connect')
-    // mongoose.connect(db, {                      // 连接数据库, 填入地址
-    //     // useUnifiedTopology: true,
-    //     useNewUrlParser: true,
-    // })
-
     mongoose.connect(DATABASE_URL, { 
         useNewUrlParser: true, 
         useUnifiedTopology: true,
@@ -66,4 +62,13 @@ exports.connect = () => {
         })
 
     })
+}
+
+
+exports.initSchemas = () => {      
+    // 这里吧所有的 schema 全部 require 进来就好了
+    // 因为每个 schema 都会发布 model: 都会自动执行 mongoose.model()
+
+    // 加载所有 schema 文件
+    glob.sync(resolve(__dirname, './schema', '**/*.js')).forEach(require)   // 拿到所有的 schema 之后，再 forEach(require) 逐个加载进来
 }

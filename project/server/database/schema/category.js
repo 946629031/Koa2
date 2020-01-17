@@ -1,7 +1,7 @@
+// 电影分类模型
+
 const mongoose = require('mongoose')      // 使用 mongoose 来建模
-
 const Schema = mongoose.Schema      // 拿到建模工具
-
 const ObjectID = Schema.Types.ObjectID
 
 // 基于数据模型的定义
@@ -34,4 +34,4 @@ categorySchema.pre('save', next => {
     }
 })
 
-mongoose.model('Category', categorySchema)    // 传入模型名字 Movie，具体的 Schema
+mongoose.model('Category', categorySchema)    // mongoose.model 发布 model // 传入模型名字 Movie，具体的 Schema

@@ -1,7 +1,5 @@
 const mongoose = require('mongoose')      // 使用 mongoose 来建模
-
 const Schema = mongoose.Schema      // 拿到建模工具
-
 const { Mixed, ObjectID } = Schema.Types
 
 // 基于数据模型的定义
@@ -59,4 +57,4 @@ movieSchema.pre('save', next => {   // pre save 就是保存之前
 })
 
 
-mongoose.model('Movie', movieSchema)    // 传入模型名字 Movie，具体的 Schema
+mongoose.model('Movie', movieSchema)     // mongoose.model 发布 model // 传入模型名字 Movie，具体的 Schema

@@ -19,7 +19,7 @@ const userSchema = new Schema({
         type: String
     },
     password: {
-        unique: true,
+        // unique: true,
         tyep: String
     },
     loginAttempts: {
@@ -151,4 +151,4 @@ userSchema.methods = {
 }
 
 
-mongoose.model('User', userSchema)    // 传入模型名字 Movie，具体的 Schema
+mongoose.model('User', userSchema)     // mongoose.model 发布 model // 传入模型名字 Movie，具体的 Schema
