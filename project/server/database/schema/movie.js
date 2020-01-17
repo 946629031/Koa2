@@ -9,10 +9,10 @@ const movieSchema = new Schema({
         type: String
     },
 
-    category: {
+    category: [{
         type: ObjectID,
         ref: 'Category'     // 关联表
-    },
+    }],
 
     rate: Number,
     title: String,
@@ -46,7 +46,7 @@ const movieSchema = new Schema({
 })
 
 // 创建时间 更新时间  中间件的实现
-movieSchema.pre('save', next => {   // pre save 就是保存之前
+movieSchema.pre('save', function(next) {   // pre save 就是保存之前
     if (this.isNew) {
         this.meta.createdAt = this.meta.updateAt = Date.now()
     } else {

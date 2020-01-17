@@ -6,16 +6,12 @@ const { resolve } = require('path')
 const { connect, initSchemas } = require('./database/init')
 
 ;(async () => {
-    await connect()
+    await connect()     // 连接数据库
 
-    initSchemas()
+    initSchemas()       // 初始化 schema
 
-    // 数据查询
-    // mongoose.model() 就能拿到 这个model
-    const Movie = mongoose.model('Movie')
-    const movies = await Movie.find({})
-
-    console.log(movies)
+    // require('./tasks/movies')   // 执行任务：爬取电影数据，并存到数据库
+    require('./tasks/douban_api')
 })()
 
 app.use(views(resolve(__dirname, './views'), {

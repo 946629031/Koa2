@@ -44,7 +44,7 @@ const userSchema = new Schema({
 
 // 虚拟字段
 // 虚拟字段不会被真正存到 数据库里
-userSchema.virtual('isLocked').get(() => {
+userSchema.virtual('isLocked').get(function () {
     // lockUntil 要被锁定到什么时候
     // lockUntil > Date.now() 是否已经过了有效期
     // 两次取反 拿到 true or false
@@ -53,7 +53,7 @@ userSchema.virtual('isLocked').get(() => {
 
 
 // 创建时间 更新时间  中间件的实现
-userSchema.pre('save', next => {   // pre save 就是保存之前
+userSchema.pre('save', function(next) {   // pre save 就是保存之前
     if (this.isNew) {
         this.meta.createdAt = this.meta.updateAt = Date.now()
     } else {
@@ -65,7 +65,7 @@ userSchema.pre('save', next => {   // pre save 就是保存之前
 
 
 // 保存之前 对密码加密
-userSchema.pre('save', next => {   // pre save 就是保存之前
+userSchema.pre('save', function(next) {   // pre save 就是保存之前
     if (!this.isModified('password')) return next()  // 检查 password 是否更改，如果没有更改了 直接跳过
 
     // bcrypt 加密库
