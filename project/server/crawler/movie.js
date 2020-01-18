@@ -3,7 +3,7 @@ const puppeteer = require('puppeteer')
 console.log('You in...')
 
 const url = 'https://movie.douban.com/subject/'
-const doubanID = 1652592
+const doubanID = 27119724
 // const video = 'https://movie.douban.com/trailer/243269/'
 
 const sleep = time => new Promise( resolve => {

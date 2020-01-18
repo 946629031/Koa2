@@ -1,3 +1,5 @@
+// 该文件 主要的作用，是用于 通过豆瓣提供的API 请求电影数据
+
 const rp = require('request-promise-native')    // 引入发起请求的库.  request-promise-native 实际上就是 request 的上层封装
 const mongoose = require('mongoose')        // 1.引入mongoose
 const Movie = mongoose.model('Movie')       // 2.拿到 Movie 数据模型

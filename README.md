@@ -2999,7 +2999,121 @@
         - 所以，我们要把它下载下来，保存在 自己可控 的地方
         - 但是，由于视频什么的，文件体积非常大，保存到服务器中，又很占地方
         - 所以，我们把 数据 上传到第三方的 **`对象存储`** 是最合适的
+    - ### 怎么上传？
+        - 1.我们先执行代码 `/server/crawler/movie.js` 和 `/server/tasks/movies.js`
+            - 拿到 一条电影 资源数据
+            - 然后 我们需要把 电影的 预告片视频，图片 上传到 七牛图床 上去
+            ```js
+            let movies = [{
+                doubanID: 27119724,
+                coverImage: 'background-image:url(https://img1.doubanio.com/img/trailer/medium/2567151398.jpg?)',
+                video: 'http://vt1.doubanio.com/202001181136/1916c3c70a7f98a747790516303480e4/view/movie/M/402510982.mp4',
+                poster: 'https://img9.doubanio.com/view/photo/l_ratio_poster/public/p2567198874.jpg'
+            }]
+            ```
+        - 2.配置文件
+            - AccessKey/SecretKey 在 [个人中心 - 密钥管理](https://portal.qiniu.com/user/key) 里
+            ```js
+            // /server/config/index.js
+            module.exports = {
+                "qiniu": {
+                    "bucket": "threeki-douban",
+                    "video": "http://video.iblack7.com/",
+                    "AK": "",       // AccessKey
+                    "SK": ""        // SecretKey
+                }
+            }
+            ```
+        - 3.上传逻辑代码
+            - [《Nano ID》 - js唯一ID生成器](https://www.xttblog.com/?p=1735)
+            ```js
+            // /server/tasks/qiniu.js
 
+            // 我们需要把 电影的 预告片视频，图片 上传到 七牛图床 上去
+
+            const qiniu = require('qiniu')
+            const nanoid = require('nanoid')    // 随机ID生成器
+            const config = require('../config')
+
+            const bucket = config.qiniu.bucket
+            const mac = new qiniu.auth.digest.Mac(config.qiniu.AK, config.qiniu.SK)
+            const cfg = new qiniu.conf.Config()
+            const client = new qiniu.rs.BucketManager(mac, cfg)        // 七牛上传对象
+
+            const uploadToQiniu = async (url, key) => {
+                return new Promise((resolve, reject) => {
+                    client.fetch(url, bucket, key, (err, ret, info) => {    // client.fetch 能够获取网络静态资源
+                        if (err) {
+                            reject(err)
+                        } else {
+                            if (info.statusCode == 200) {
+                                resolve({ key })
+                            } else {
+                                reject(info)
+                            }
+                        }
+                    })
+                })
+            }
+
+
+
+            ;(async () => {
+                let movies = [{
+                    doubanID: 27119724,
+                    coverImage: 'https://img1.doubanio.com/img/trailer/medium/2567151398.jpg',
+                    video: 'http://vt1.doubanio.com/202001181136/1916c3c70a7f98a747790516303480e4/view/movie/M/402510982.mp4',
+                    poster: 'https://img9.doubanio.com/view/photo/l_ratio_poster/public/p2567198874.jpg'
+                }]
+
+                movies.map(async movie => {
+                    if (movie.video && !movie.key) {
+                        try {
+                            console.log('开始传 video')
+
+                            let videoData = await uploadToQiniu(movie.video, nanoid() + '.mp4')
+
+                            console.log('开始传 coverImage')
+
+                            let coverImageData = await uploadToQiniu(movie.coverImage, nanoid() + '.jpg')
+
+                            console.log('开始传 poster')
+
+                            let posterData = await uploadToQiniu(movie.poster, nanoid() + '.jpg')
+
+                            if (videoData.key) {
+                                movie.videoKey = videoData.key
+                            }
+                            if (coverImageData.key) {
+                                movie.coverImageKey = coverImageData.key
+                            }
+                            if (posterData.key) {
+                                movie.posterKey = posterData.key
+                            }
+                            console.log('正确 ', movie)
+                        } catch (err) {
+                            console.log('错误', err)
+                        }
+                    }
+                })
+                
+            })()
+            ```
+        - 4.执行代码 `node server/tasks/qiniu.js`
+            ```
+            开始传 video
+            开始传 coverImage
+            开始传 poster
+            正确  {
+                doubanID: 27119724,
+                coverImage: 'https://img1.doubanio.com/img/trailer/medium/2567151398.jpg',
+                video: 'http://vt1.doubanio.com/202001181136/1916c3c70a7f98a747790516303480e4/view/movie/M/402510982.mp4',
+                poster: 'https://img9.doubanio.com/view/photo/l_ratio_poster/public/p2567198874.jpg',
+                videoKey: '0EOLAFiGwePfbJmll9ORA.mp4',
+                coverImageKey: 'tMf5ckCnv_WWHzgDg2CA3.jpg',
+                posterKey: 'vCLNfXVkfGCV5DW9y5AI7.jpg'
+            }
+            ```
 
 
 # 第7章 彩蛋篇 - [高难度拔高干货] 深度理解 Node.js 异步 IO 模型
@@ -3736,7 +3850,7 @@
     // /server/database/schema/user.js
 
     const mongoose = require('mongoose')      // 使用 mongoose 来建模
-    const bcrypt = require('bcrypt')        // 如果是比较老的版本 node ，就用 bcryptjs
+    const bcrypt = require('bcrypt')        // bcrypt 加密库 // 如果是比较老的版本 node ，就用 bcryptjs
     const Schema = mongoose.Schema      // 拿到建模工具
     const { Mixed, ObjectID } = Schema.Types
     const SALT_WORK_FACTOR = 10
