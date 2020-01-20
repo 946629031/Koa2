@@ -62,7 +62,7 @@
     - [8-6 创建电影分类以及初始化所有](#8-6-创建电影分类以及初始化所有)
     - [8-7 向数据库导入爬到的电影数据](#8-7-向数据库导入爬到的电影数据)
 - [第9章 实战篇 - 为网站增加路由与控制器层对外提供 API 服务](#第9章-实战篇---为网站增加路由与控制器层对外提供-API-服务)
-    - [9-1 第二次迭代快速实现一个最小统计的api服务器](#9-1-第二次迭代快速实现一个最小统计的api服务器)
+    - [9-1 Router 第二次迭代快速实现一个最小统计的api服务器](#9-1-Router-第二次迭代快速实现一个最小统计的api服务器)
     - [9-2 第二次迭代了解koa-router的基本能力以及取舍套路](#9-2-第二次迭代了解koa-router的基本能力以及取舍套路)
     - [9-3 通过装饰器来把路由进行拆分和继承](#9-3-通过装饰器来把路由进行拆分和继承)
     - [9-4 结合decorator 对 koa-router 进行抽象封装支持路由空间](#9-4-结合decorator-对-koa-router-进行抽象封装支持路由空间)
@@ -3433,6 +3433,8 @@
 
 # 第8章 实战篇 - 在 Koa 中向 MongoDB 建立数据模型
 - ## 8-1 windows mac centos ubuntu安装mongodb-1
+    - [MongoDB Compass GUI 可视化软件](https://www.mongodb.com/products/compass)
+        - [MongoDB Compass 使用教程](https://www.youtube.com/watch?v=o4flC4e9Qmc)
     - mac安装 mongodb
         - 课程视频时间 13:50
         - Homebrew
@@ -4004,6 +4006,42 @@
 
     mongoose.model('User', userSchema)    // 传入模型名字 Movie，具体的 Schema
     ```
+    - 这样挂载到 入口文件？
+        ```js
+        // /server/index.js
+
+        const Koa = require('koa'
+        const mongoose = require('mongoose')
+        const app = new Koa()
+        const views = require('koa-views')
+        const { resolve } = require('path')
+        // const { connect, initSchemas } = require('./database/init')
+        const { connect, initSchemas, initAdmin } = require('./database/init')
+
+        ;(async () => {
+            await connect()     // 连接数据库
+
+            initSchemas()       // 初始化 schema
+
+            await initAdmin()   // ?????
+
+            // require('./tasks/movies')   // 执行任务：爬取电影数据，并存到数据库
+            // require('./tasks/douban_api')
+        })()
+
+        app.use(views(resolve(__dirname, './views'), {
+            extension: 'pug'
+        }))
+
+        app.use(async (ctx, next) => {
+            await ctx.render('index', {
+                you: 'Luke',
+                me: 'Scoot'
+            })
+        })
+
+        app.listen(2333)
+        ```
 - ## 8-6 创建电影分类以及初始化所有
     - 本节目标
         - 建立 一个电影 分类模型，让电影 和 电影分类 之间 建立一个关联关系
@@ -4355,3 +4393,170 @@
         }
     })()
     ```
+
+# 第9章 实战篇 - 为网站增加路由与控制器层对外提供 API 服务
+- ## 9-1 Router 第二次迭代快速实现一个最小统计的api服务器
+    - 安装 `npm i koa-router`
+    - 1.Router 规则
+        ```js
+        // /server/routes/index.js
+
+        const Router = require('koa-router')
+        const mongoose = require('mongoose')
+        const router = new Router()
+
+
+        router.get('/movies/all', async (ctx, next) => {
+            const Movie = mongoose.model('Movie')
+            const movies = await Movie.find({}).sort({      // 拿到电影数据, 然后根据 创建时间 从最新到最旧 排序
+                'meta.createdAt': -1
+            })
+
+            // 排序之后的 movies 就把他挂到 ctx.body 进行返回
+            ctx.body = {
+                movies
+            }
+        })
+
+        // 电影详情
+        router.get('/movies/detail/:id', async (ctx, next) => {
+            const Movie = mongoose.model('Movie')
+            const id = ctx.params.id
+            const movie = await Movie.findOne({_id: id})
+
+            // 把拿到的数据结果, 挂载到 ctx.body 进行返回
+            ctx.body = {
+                movie
+            }
+        })
+
+        module.exports = router
+        ```
+    - 2.把 Router 规则 挂载到 入口文件 `/server/index.js` 里
+        ```js
+        // /server/index.js
+
+        const Koa = require('koa')
+        const mongoose = require('mongoose')
+        const app = new Koa()
+        const views = require('koa-views')
+        const { resolve } = require('path')
+        const { connect, initSchemas } = require('./database/init')
+        const router = require('./routes')
+
+        ;(async () => {
+            await connect()     // 连接数据库
+
+            initSchemas()       // 初始化 schema
+
+            // require('./tasks/movies')   // 执行任务：爬取电影数据，并存到数据库
+            // require('./tasks/douban_api')
+        })()
+
+        // 挂载路由
+        app
+            .use(router.routes())
+            .use(router.allowedMethods())   // 允许基本方法
+
+        app.use(views(resolve(__dirname, './views'), {
+            extension: 'pug'
+        }))
+
+        app.use(async (ctx, next) => {
+            await ctx.render('index', {
+                you: 'Luke',
+                me: 'Scoot'
+            })
+        })
+
+        app.listen(2333)
+        ```
+    - 3.测试验证
+        - `node server` 启动服务器
+        - 所有电影 路由
+            - `http://localhost:2333/movies/all`
+        - 详情页 路由
+            - `http://localhost:2333/movies/detail/5e2155d2e421626cef6fbaa4`
+
+
+- ## 9-2 第二次迭代了解koa-router的基本能力以及取舍套路
+    - 我们还可以通过 `ctx.path === '/movies` 也能获取 并 判断 他的请求路径
+        - 然后根据不同的路径，分配不同的 处理逻辑
+        - 但是，当路径规则变复杂之后，尤其是 要求判断是什么样的请求方法时，**`代码就变得不太好维护了`**
+        - 所以，最好的方法 还是用 第三方路由库，例如 `koa-router`
+    - 在上一节代码中
+        - 我们在 `routes/index.js` 里写了两个 路由规则
+        - 但是，在我们的项目中 如果有 三四十个 路由规则的话，如果我们都写在一个文件里，就会变得比较难以维护了
+            - 我们可以吧 文件拆开，利用 koa-router 生成多个 `router实例`，然后通过多个 router实例 来分配不同的 控制器
+            - 但是这样做 又会引发第三个问题，
+                - 如果这个请求 进来之后呢，我能够对这个 进来的参数 做一些处理、cookie 做一些认证、返回数据之前 对数据做一些加工，在 控制器 之前再加一些中间件，在这个 中间件 里做一些处理。加的这个中间件 koa-router 是支持的
+                - 那就算 是 koa-router 支持加这些中间件，如果是在 不同的 文件里面，以不同的 `router实例` 进行分配的话，文件数 多了之后 依然会比较麻烦
+
+    - koa-router 的基本用法
+        - 1.支持 连起来写 `router.get().post()`
+            ```js
+            router
+                .get('/movies/all', async (ctx, next) => {
+                // 处理逻辑
+                })
+                .post()
+            ```
+        - 2.可以带参数
+            ```js
+            router.get('/movies/all?abc=123', async (ctx, next) => {
+                // 处理逻辑
+            })
+            ```
+        - 3.多个路由 命中同一个 处理逻辑
+            ```js
+            router.get('/movies/all?abc=123', async (ctx, next) => {
+            router.get('/movies/all?abc=456', async (ctx, next) => {
+                // 处理逻辑
+            })
+            ```
+        - 4.路由 参数
+            ```js
+            router.get('/movie/:id', async (ctx, next) => {
+                const id = ctx.params.id    // 通过 ctx.params 获取路由参数
+            })
+            ```
+        - 5.多个 路由参数
+            ```js
+            router.get('/movie/:id/comments/:cid', async (ctx, next) => {
+                const id = ctx.params.id    // 通过 ctx.params 获取路由参数
+                const id = ctx.params.cid    // 通过 ctx.params 获取路由参数
+            })
+            ```
+        - 6.多个中间件
+            - 经过多个中间件的处理，我们在后面的中间件中，就能拿到前面 处理的结果
+            - 语法
+                ```js
+                router.get('/movies', (ctx, next)=>{}, (ctx, next)=>{} )    // 里面可以写多个中间件`
+                ```
+            - 示例
+                ```js
+                router.get('/movies/all', async (ctx, next) => {
+                    // 在这个中间件里，我们先查询 电影的类别
+                    const cats = await Category.find({})
+
+                    ctx.body = cats
+
+                    return next()   // 处理完后，往下调用 next()
+                }, async (ctx, next) => {
+                    const Movie = mongoose.model('Movie')
+                    const movies = await Movie.find({}).sort({      // 拿到电影数据, 然后根据 创建时间 从最新到最旧 排序
+                        'meta.createdAt': -1
+                    })
+
+                    // 排序之后的 movies 就把他挂到 ctx.body 进行返回
+                    ctx.body = {
+                        movies
+                    }
+                })
+                ```
+
+                6:00
+            
+- ## 9-3 通过装饰器来把路由进行拆分和继承
+- ## 9-4 结合decorator 对 koa-router 进行抽象封装支持路由空间
+- ## 9-5 分拆项目服务层与路由层对外暴露api服务
