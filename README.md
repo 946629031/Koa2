@@ -43,7 +43,7 @@
     - [5-2 行代码撸一个服务器推到git仓库](#5-2-行代码撸一个服务器推到git仓库)
     - [5-3 服务器返回一个静态 html页面](#5-3-服务器返回一个静态-html页面)
     - [5-4 集成模板引擎 koa 搭建初始模板目录](#5-4-集成模板引擎-koa-搭建初始模板目录)
-    - [5-5 集成模板引擎到koa 搭建初始模板目录](#5-5-集成模板引擎到koa-搭建初始模板目录)
+    - [5-5 模版引擎中间件 集成模板引擎到koa 搭建初始模板目录](#5-5-模版引擎中间件-集成模板引擎到koa-搭建初始模板目录)
     - [5-6 借助 bootstrap 4-x 搭建网站首页](#5-6-借助-bootstrap-4-x-搭建网站首页)
 - [第6章 利用爬虫搞定网站基础数据](#第6章-利用爬虫搞定网站基础数据)
     - [6-1 设计与分析](#6-1-设计与分析)
@@ -54,7 +54,7 @@
     - [6-6 puppeteer 深度爬取封面图和视频地址](#6-6-puppeteer-深度爬取封面图和视频地址)
     - [6-7 上传线上封面图和视频搬砖到七牛云图床上](#6-7-上传线上封面图和视频搬砖到七牛云图床上)
 - [第7章 彩蛋篇 - [高难度拔高干货] 深度理解 Node.js 异步 IO 模型](#第7章-彩蛋篇---[高难度拔高干货]-深度理解-Node.js-异步-IO-模型)
-    - [7-1 从异步非阻塞的代码案例切入事件循环](#7-1-从异步非阻塞的代码案例切入事件循环)
+    - [7-1 前言](#7-1-前言)
     - [7-2 从异步非阻塞的代码案例切入事件循环](#7-2-从异步非阻塞的代码案例切入事件循环)
     - [7-3 从libuv 源码来理解event loop的六个阶段](#7-3-从libuv-源码来理解event-loop的六个阶段)
     - [7-4 设计一个测试用例来验证自己对事件循环的理解](#7-4-设计一个测试用例来验证自己对事件循环的理解)
@@ -67,7 +67,7 @@
     - [8-6 创建电影分类以及初始化所有](#8-6-创建电影分类以及初始化所有)
     - [8-7 向数据库导入爬到的电影数据](#8-7-向数据库导入爬到的电影数据)
 - [第9章 实战篇 - 为网站增加路由与控制器层对外提供 API 服务](#第9章-实战篇---为网站增加路由与控制器层对外提供-API-服务)
-    - [9-1 第二次迭代快速实现一个最小统计的api服务器](#9-1-第二次迭代快速实现一个最小统计的api服务器)
+    - [9-1 Router 第二次迭代快速实现一个最小统计的api服务器](#9-1-Router-第二次迭代快速实现一个最小统计的api服务器)
     - [9-2 第二次迭代了解koa-router的基本能力以及取舍套路](#9-2-第二次迭代了解koa-router的基本能力以及取舍套路)
     - [9-3 通过装饰器来把路由进行拆分和继承](#9-3-通过装饰器来把路由进行拆分和继承)
     - [9-4 结合decorator 对 koa-router 进行抽象封装支持路由空间](#9-4-结合decorator-对-koa-router-进行抽象封装支持路由空间)
@@ -1944,6 +1944,7 @@
 - ## 5-3 服务器返回一个静态 html页面
     ```js
     // /server/index.js
+    
     const Koa = require('koa')
     const app = new Koa()
     const { normal } = require('./template')
@@ -1952,6 +1953,8 @@
         ctx.type = 'text/html; charset=utf-8'
         ctx.body = normal
     })
+
+    app.listen(2333)
     ```
     ```js
     // /server/template/index.js
@@ -1978,9 +1981,2587 @@
     </body>
     </html>
     `
-    }
     ```
 
 - ## 5-4 集成模板引擎 koa 搭建初始模板目录
-- ## 5-5 集成模板引擎到koa 搭建初始模板目录
+    - 本节介绍3个 模版引擎
+        - ejs
+        - pug
+        - jage
+
+    - BootCDN  CDN 加速服务
+        - https://www.bootcdn.cn/
+        - https://cdn.bootcss.com/jquery/3.4.1/jquery.js
+    - ### 1.ejs
+        - https://github.com/tj/ejs
+        - 安装 `npm i ejs`
+        ```js
+        // /server/template/ejs.js
+
+        module.exports = `
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <meta http-equiv="X-UA-Compatible" content="ie=edge">
+            <title>Document</title>
+        </head>
+        <body>
+            hello world
+            <h1>Hi <%= you %></h1>
+            <p>this is <%= me %></p>
+        </body>
+        </html>
+        `
+        ```
+        - 其中 `<%= you %>` 里面放的是变量名
+        ```js
+        // /server/index.js
+        const Koa = require('koa')
+        const app = new Koa()
+        const ejs = require('ejs')
+        const { ejsTpl } = require('./template')
+
+        app.use(async (ctx, next) => {
+            ctx.type = 'text/html; charset=utf-8'
+            ctx.body = ejs.render(ejsTpl, {
+                you: 'Luke',    // 为模版里的变量赋值
+                me: 'Scott'
+            })
+        })
+
+        app.listen(2333)
+        ```
+        ```js
+        // /server/template/index.js
+
+        module.exports = {
+            ejsTpl: require('./ejs')
+        }
+        ```
+    - ### 2.pug
+        - https://github.com/pugjs/pug
+        - 安装 `npm i pug`
+        ```js
+        // /server/template/pug.js
+        module.exports = `
+        doctype html
+        html
+            head
+                meta(charset="utf-8")
+                meta(name="viewport", content="width=device-width, initial-scale=1")
+                title Koa Server Pug
+                link(href="https://cdn.bootcss.com/animate.css/3.7.2/animate.css" rel="stylesheet")
+                script(src="https://cdn.bootcss.com/jquery/3.4.1/jquery.js")
+            body
+                .container
+                    .row
+                    .clo-md-8
+                        h1 Hi #{you}
+                        p This is #{me}
+                    .clo-md-4
+                        p 测试动态 Pug 页面
+        `
+        ```
+        ```js
+        // /server/index.js
+        const Koa = require('koa')
+        const app = new Koa()
+        const pug = require('pug')
+        const { pugTpl } = require('./template')
+
+        app.use(async (ctx, next) => {
+            ctx.type = 'text/html; charset=utf-8'
+            ctx.body = pug.render(pugTpl, {
+                you: 'Luke 111',
+                me: 'Scott 22'
+            })
+        })
+
+        app.listen(2333)
+        ```
+        ```js
+        // /server/template/index.js
+        module.exports = {
+            normal: require('./normal'),
+            ejsTpl: require('./ejs'),
+            pugTpl: require('./pug')
+        }
+        ```
+
+    - ### 3.jade
+        - [《带你学习Jade模板引擎》 - 慕课网](https://www.imooc.com/learn/259)
+
+- ## 5-5 模版引擎中间件 集成模板引擎到koa 搭建初始模板目录
+    - 存在的问题
+        - 在上一节中，我们使用模版引擎，都是通过 拼接字符串的方式
+        - 这种方式不是不行，只是比较的人肉，比较麻烦
+        - 那么，这一节，我们通过使用 **`模版引擎中间件`** 的形式 集成到项目里
+    - 解决问题
+        - 在 github 搜索 [koa-views](https://github.com/queckezz/koa-views)
+        - 点击 [List of supported engines](https://github.com/tj/consolidate.js#supported-template-engines) 查看支持的 **`模版引擎`**
+        - 这节 我们选择 pug 模版引擎
+    - ### 模版引擎中间件 koa-views
+        - 安装 `npm i koa-views`
+        ```js
+        // /server/index.js
+
+        const Koa = require('koa')
+        const app = new Koa()
+        const views = require('koa-views')
+        const { resolve } = require('path')
+
+        app.use(views(resolve(__dirname, './views'), { // 配置 koa-views
+            extension: 'pug'
+        }))
+
+        app.use(async (ctx, next) => {
+            await ctx.render('index', {
+                you: 'Luke',
+                me: 'Scoot'
+            })
+        })
+
+        app.listen(2333)
+        ```
+        ```pug
+        // /server/views/index.pug
+
+        doctype html
+        html
+            head
+                meta(charset="utf-8")
+                meta(name="viewport", content="width=device-width, initial-scale=1")
+                title Koa Server Pug
+                link(href="https://cdn.bootcss.com/animate.css/3.7.2/animate.css" rel="stylesheet")
+                script(src="https://cdn.bootcss.com/jquery/3.4.1/jquery.js")
+            body
+                .container
+                    .row
+                    .clo-md-8
+                        h1 Hi #{you}
+                        p This is #{me}
+                    .clo-md-4
+                        p 测试动态 Pug 页面
+        ```
+    - ### Pug 使用
+        - 选择 pug 到原因
+            - 语法简洁
+            - 支持 模版继承
+            - 支持 模块声明
+        - 项目目录
+            ```
+            +  |- /dist
+            +  |- /node_modules
+            +  |- /server
+            +     |- /template
+            +     |- /views
+                     |- index.pug
+            +        |- /layouts        页面布局
+                        |- default.pug
+            +        |- /includes       公用模块
+                        |- script.pug
+                        |- style.pug
+                  |- index.js
+            +  |- /src
+               |- package-lock.json
+               |- package.json
+            ```
+        - pug 语法
+            - `include ../includes/style` 引入
+            - `extends ./layouts/default` 继承
+            - `block content` block 定义模块
+                ```
+                block content     //定义模块，模块名 content
+                    .container
+                        .row
+                        .clo-md-8
+                            h1 Hi #{you}
+                            p This is #{me}
+                        .clo-md-4
+                            p 测试动态 Pug 页面
+                ```
+        - pug 模块拆分
+            ```pug
+            // /server/views/index.pug
+
+            extends ./layouts/default    // 继承
+
+            block title                  // 模块定义
+                title Koa Douban 首页
+
+            block content
+                .container
+                    .row
+                    .clo-md-8
+                        h1 Hi #{you}
+                        p This is #{me}
+                    .clo-md-4
+                        p 测试动态 Pug 页面
+            ```
+            ```pug
+            // /server/views/layouts/default.pug
+
+            doctype html
+            html
+                head
+                    meta(charset="utf-8")
+                    meta(name="viewport", content="width=device-width, initial-scale=1")
+                    block title
+                    include ../includes/style
+                body
+                    block content
+                    include ../includes/script
+            ```
+            ```pug
+            // /server/views/includes/script.pug
+
+            script(src="https://cdn.bootcss.com/jquery/3.4.1/jquery.js")
+            ```
+            ```pug
+            // /server/views/includes/style.pug
+
+            link(href="https://cdn.bootcss.com/animate.css/3.7.2/animate.css" rel="stylesheet")
+            ```
+
+- test pull request
+
 - ## 5-6 借助 bootstrap 4-x 搭建网站首页
+    - DPlayer
+        - [DPlayer github](https://github.com/MoePlayer/DPlayer)
+        - H5播放器，B站也在用这个播放器，可添加弹幕
+        
+    - 项目目录
+        ```
+        +  |- /dist
+        +  |- /node_modules
+        +  |- /server
+        +     |- /template
+        +     |- /views
+                    |- index.pug
+        +        |- /layouts         页面布局
+                    |- default.pug
+        +        |- /includes        公用模块
+                    |- header.pug
+                    |- script.pug
+                    |- style.pug
+                |- index.js
+        +  |- /src
+            |- package-lock.json
+            |- package.json
+        ```
+    - 代码
+        ```js
+        // /server/index.js
+        const Koa = require('koa')
+        const app = new Koa()
+        const views = require('koa-views')
+        const { resolve } = require('path')
+
+        app.use(views(resolve(__dirname, './views'), {
+            extension: 'pug'
+        }))
+
+        app.use(async (ctx, next) => {
+            await ctx.render('index', {
+                you: 'Luke',
+                me: 'Scoot'
+            })
+        })
+
+        app.listen(2333)
+        ```
+        ```pug
+        // /server/views/index.pug
+        
+        extends ./layouts/default
+
+        block title
+            title Koa Douban 首页
+
+        block content
+            style.
+                header{
+                    position: -webkit-sticky;
+                    position: sticky;
+                    top: 0;
+                    background: #00474f;
+                    color: #e7dacb;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    height: 50px;
+                    z-index: 500;
+                }
+
+                @media (min-width: 768px) {
+                    .sidebar {
+                        position: -webkit-sticky;
+                        position: sticky;
+                        top: 4rem;
+                        z-index: 1000;
+                        height: calc(100vh - 4rem);
+                        border-right: 1px solid rgba(0,0,0,.1);
+                        order: 0;
+                        border-bottom: 1px solid rgba(0,0,0,.1);
+                    }
+                    .cat-links {
+                        display: block!important;
+                        max-height: calc(100vh - 9rem);
+                        overflow-y: auto;
+                        padding-top: 1rem;
+                        padding-bottom: 1rem;
+                        margin-right: -15px;
+                        margin-left: -15px;
+                    }
+                    .modal-dialog {
+                        max-width: 800px;
+                    }
+                }
+                .sidebar-link {
+                    display: block;
+                    padding: .25rem 1.5rem;
+                    font-weight: 500;
+                    color: rgba(0,0,0.65)
+                }
+                .sidebar .nav>li>a{
+                    display: block;
+                    padding: .25rem 1.5rem;
+                    font-size: 90%;
+                    color: rgba(0,0,0,.65)
+                }
+                .sidebar-item.active > .sidebar-inner {
+                    display: block;
+                }
+                .card{
+                    margin-bottom: 1.5rem;
+                }
+                .swithcher{
+                    position: relative;
+                    padding: 1rem 15px;
+                    margin-right: -15px;
+                    margin-left: -15px;
+                    border-bottom: 1px solid rgba(0,0,0,.05)
+                }
+                .sidebar-toggle{
+                    line-height: 1;
+                    color: #212529;
+                }
+                .p-0{
+                    padding: 0!important;
+                }
+                .ml-3, .mx-3{
+                    margin-left: 1rem!important;
+                }
+                .btn-link{
+                    font-weight: 400;
+                    color: #007bff;
+                    background-color: transparent;
+                }
+
+            include ./includes/header
+
+            .container-fluid
+                .row
+                    .col-12.col-md-3.col-xl-2.sidebar
+                        .collapse.cat-links
+                            .sidebar-item.active
+                                a.sidebar-link(href='/') Links
+                                ul.nav.sidebar-inner
+                                    li.active.sidebar-inner-active
+                                        a(href='/') Link1
+                                    li.sidebar-inner-active
+                                        a(href='/') Link2
+                    .col-12.col-md-9.col-xl-9.py-md-3.pl-md-5.content
+                        .row
+                            .col-md-6
+                                .card
+                                    img.card-img-top(src="https://img9.doubanio.com/view/photo/l/public/p2567198874.webp",
+                                    data-video="http://vfx.mtime.cn/Video/2017/03/31/mp4/170331093811717750.mp4",
+                                    data-title='小丑 Joker (2019)'
+                                    data-toggle="modal", data-target="#exampleModal")
+                                    .card-body
+                                        h4.card-title 小丑 Joker (2019)
+                                        p.card-desc 这是电影描述
+                                    .card-footer
+                                        small.text-muted 1 天前更新
+                            .col-md-6
+                                .card
+                                    img.card-img-top(src="https://img9.doubanio.com/view/photo/l/public/p2578045524.webp",
+                                    data-video="http://clips.vorwaerts-gmbh.de/big_buck_bunny.mp4",
+                                    data-title='82年生的金智英 82년생 김지영 (2019)'
+                                    data-toggle="modal", data-target="#exampleModal")
+                                    .card-body
+                                        h4.card-title 82年生的金智英 82년생 김지영 (2019)
+                                        p.card-desc 这是电影描述
+                                    .card-footer
+                                        small.text-muted 1 天前更新
+                        .row
+                            .col-md-6
+                                .card
+                                    img.card-img-top(src="https://img9.doubanio.com/view/photo/l/public/p2568902055.webp",
+                                    data-video="http://www.w3school.com.cn/example/html5/mov_bbb.mp4",
+                                    data-title='爱尔兰人 The Irishman'
+                                    data-toggle="modal", data-target="#exampleModal")
+                                    .card-body
+                                        h4.card-title 爱尔兰人 The Irishman
+                                        p.card-desc 这是电影描述
+                                    .card-footer
+                                        small.text-muted 1 天前更新
+                            .col-md-6
+                                .card
+                                    img.card-img-top(src="https://img1.doubanio.com/view/photo/l/public/p2571760178.webp",
+                                    data-video="https://media.w3.org/2010/05/sintel/trailer.mp4",
+                                    data-title='婚姻故事 Marriage Story'
+                                    data-toggle="modal", data-target="#exampleModal")
+                                    .card-body
+                                        h4.card-title 婚姻故事 Marriage Story
+                                        p.card-desc 这是电影描述
+                                    .card-footer
+                                        small.text-muted 1 天前更新
+
+
+            <!-- Modal -->
+            <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Modal title</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div id="dplayer" referrerpolicy ="never"></div>
+                </div>
+                </div>
+            </div>
+            </div>
+
+            include ./includes/script
+
+            script.
+                var player = null
+
+                $(function(){
+                    $('.card-img-top').click(function(){
+                        var title = $(this).data('title')
+                        var video = $(this).data('video')
+                        var image = $(this).attr('src')
+                        $('.modal-title').text(title)
+
+                        player = new DPlayer({
+                            container: document.getElementById('dplayer'),
+                            video: {
+                                url: video,
+                                pic: image,
+                                thumbnails: image
+                            },
+                        });
+                    })
+                })
+        ```
+        ```pug
+        // /server/views/layouts/default.pug
+
+        doctype html
+        html
+            head
+                meta(charset="utf-8")
+                meta(name="viewport", content="width=device-width, initial-scale=1")
+                block title
+                include ../includes/style
+            body
+                block content
+        ```
+        ```pug
+        // /server/views/includes/header.pug
+
+        header.navbar.narbar-expand.navbar-dark.flex-column.flex-md-row
+            a.navbar-brand.mr-0.mr-md-2(href='/') 豆瓣预告片
+            .navbar-nav-scroll
+                ul.navbar-nav.bd-navbar-nav.flex-row
+                    li.nav-item
+                        a.nav-link.active(href='/link1') 快捷连接 1
+        ```
+        ```pug
+        // /server/views/includes/script.pug
+
+        script(src="https://cdn.bootcss.com/jquery/3.4.1/jquery.js")
+        script(src="https://cdn.bootcss.com/bootstrap/4.0.0-beta.2/js/bootstrap.bundle.min.js")
+        script(src="https://cdn.jsdelivr.net/npm/dplayer/dist/DPlayer.min.js")
+        ```
+        ```pug
+        // /server/views/includes/style.pug
+
+        link(href="https://cdn.bootcss.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css" rel="stylesheet")
+        link(href="https://cdn.jsdelivr.net/npm/dplayer/dist/DPlayer.min.css" rel="stylesheet")
+        ```
+
+
+
+# 第6章 利用爬虫搞定网站基础数据
+- ## 6-1 设计与分析
+    - 网站框架上 骨架， 网站数据才是 血肉
+
+    ```
+    ···············
+    ·             ·
+    ·   动态网站   ·
+    ·             ·
+    ···············
+
+        - 静态网站
+        - 数据服务
+
+        - Koa2
+            - 父子进程通信
+
+        - 数据爬取
+            - 储存
+                - MongoDB
+                - MySQL
+            - 获取
+                - 模拟浏览器
+                    - phantomJS
+                    - NightMare
+                    - pupeteer
+
+                - API同步接口
+- ## 6-2 利用 puppeteer 爬取和分析电影列表
+    - ### 什么是 Puppeteer ？
+        - [Puppeteer github](https://github.com/puppeteer/puppeteer)
+        - Puppeteer 可以简单理解为 它能够模拟浏览器
+        - 官方解释：Puppeteer 是 Google Chrome 团队官方的无界面（Headless）Chrome 工具
+            - Chrome Headless 必将成为 web 应用 **`自动化测试`** 的行业标杆
+    - ### 如何使用 Puppeteer ?
+        - 安装 `npm i puppeteer`
+        - 示例
+            - 对于如何使用 Puppeteer，这非常之容易；如下简易的示例，即实现了：导航到 https://example.com 并将截屏保存为 example.png；
+            ```js
+            const puppeteer = require('puppeteer');
+
+            (async () => {
+            const browser = await puppeteer.launch();
+            const page = await browser.newPage();
+            await page.goto('https://example.com');
+            await page.screenshot({path: 'example.png'});
+            await browser.close();
+            })();
+            ```
+    ```js
+    // /server/crawler/trailer-list.js
+    const puppeteer = require('puppeteer')
+
+    console.log('You in...')
+
+    const url = 'https://movie.douban.com/explore#!type=movie&tag=%E7%83%AD%E9%97%A8&sort=rank&page_limit=20&page_start=0'
+
+    const sleep = time => new Promise( resolve => {
+        setTimeout(resolve, time)
+    })
+
+    ;(async () => {
+        console.log('Start visit the target page...')
+
+        const browser = await puppeteer.launch({
+            args: ['--no-sandbox'],
+            dumpio: false
+        })
+
+        const page = await browser.newPage()
+        await page.goto(url, {
+            waitUntil: 'networkidle2'    // 当网络空闲时。说明网络资源加载完毕
+        })
+
+        await sleep(3000)   // 网络空闲时，再继续等待3秒
+
+        await page.waitForSelector('.more')   // class='more' 的 div
+
+        for (let i = 0; i < 1; i++ ) {         // 只点击按钮一次
+            await sleep(3000)
+            await page.click('.more')
+        }
+
+
+        // 获取网页内容
+        const result = await page.evaluate(() => {
+            var $ = window.$        // 由于页面中 本身加载了 jQuery，所以这里直接使用就行
+            var items = $('.list-wp a')        // 获取本页面 所有电影列表的 item
+            var links = []
+
+            if (items.length >= 1) {           // 如果items 不为空
+                items.each((index, item) => {
+                    let it = $(item)
+                    let doubanID = it.find('div').data('id')
+                    let title = it.find('p').html()
+                    let rate = Number(it.find('strong').text())
+                    let poster = it.find('img').attr('src')
+
+                    if(title){
+                        title = title.replace(/[\s|\n\r]/g, '').replace(/<strong>([\s\S]*?)<\/strong>/, '')
+                    }
+                    if(poster){ // 如果存在。 如果不判断 可能会报错
+                        poster = poster.replace('s_ratio', 'l_ratio')   // 将小图片 换成大图片
+                    }
+
+                    links.push({
+                        doubanID,
+                        title,
+                        rate,
+                        poster
+                    })
+                })
+            }
+
+            return links
+        })
+
+        browser.close()
+
+        console.log(result)
+
+    })()
+    ```
+
+    - 执行脚本 `node server/crawler/trailer-list.js` ，然后会打印出下面结果
+        ```js
+        [
+            {
+                doubanID: 6981153,
+                title: '爱尔兰人',
+                rate: 9,
+                poster: 'https://img9.doubanio.com/view/photo/l_ratio_poster/public/p2568902055.jpg'
+            },
+            {
+                doubanID: 27119724,
+                title: '小丑',
+                rate: 8.7,
+                poster: 'https://img9.doubanio.com/view/photo/l_ratio_poster/public/p2567198874.jpg'
+            },
+            {
+                doubanID: 26100958,
+                title: '复仇者联盟4：终局之战',
+                rate: 8.5,
+                poster: 'https://img9.doubanio.com/view/photo/l_ratio_poster/public/p2552058346.jpg'
+            },
+            // ...
+        ]
+        ```
+
+- ## 6-3 child_process fork 子进程来运行爬虫脚本
+    - 对于一个网站，我们通常提到一个词 —— **`可用性`**
+        - 换一个词来描述，就是 **`稳定`**
+        - 服务器上运行的程序、提供的服务 要足够的稳定，不能说挂就挂了
+    - 而在 Node.js 它天生就是单线程的，这时候 如果我们在 Node.js 里面跑一个比较 重的服务的话，很容易导致 服务器整个挂掉
+        - 所以，我们为了不让 服务器有挂掉的风险，我们会在 服务器 里，起若干个 **`子进程`** 来跑一些其他程序，降低服务器 挂掉的风险
+        - 这样的话，即使 子进程挂了，主进程还健在
+    - fork 可以派生出一个子进程
+    ```js
+    // /server/tasks/movie.js
+
+    const cp = require('child_process')
+    const { resolve } = require('path')
+
+    ;(async () => {     // 自动执行函数
+        const script = resolve(__dirname, '../crawler/trailer-list')
+        const child = cp.fork(script, [])       // fork 可以派生出一个子进程。通过 child_process.fork 来执行我们要 跑的脚本
+        let invoked = false             // 表示 这个脚本是否有 执行过
+
+        child.on('error', err => {
+            if (invoked) return         // 如果执行过，直接 return
+
+            invoked = true
+
+            console.log(err)
+        })
+
+        child.on('exit', code => {
+            if (invoked) return
+
+            invoked = true
+            let err = code === 0 ? null : new Error('exit code ' + code)
+
+            console.log(err)
+        })
+
+        child.on('message', data => {
+            let result = data.result
+
+            console.log(result)
+        })
+
+    })()
+    ```
+    - 在我们上一节的代码中，只是 简单的 拿到了信息，然后打印了一下
+        - 现在我们加上
+        ```js
+        // ...
+
+        process.send({result})      // 将结果发送出去
+        process.exit(0)             // 退出程序
+        ```
+        
+    ```js
+    // /server/crawler/trailer-list.js
+
+    const puppeteer = require('puppeteer')
+
+    console.log('You in...')
+
+    const url = 'https://movie.douban.com/explore#!type=movie&tag=%E7%83%AD%E9%97%A8&sort=rank&page_limit=20&page_start=0'
+
+    const sleep = time => new Promise( resolve => {
+        setTimeout(resolve, time)
+    })
+
+    ;(async () => {
+        console.log('Start visit the target page...')
+
+        const browser = await puppeteer.launch({
+            args: ['--no-sandbox'],
+            dumpio: false
+        })
+
+        const page = await browser.newPage()
+        await page.goto(url, {
+            waitUntil: 'networkidle2'    // 当网络空闲时。说明网络资源加载完毕
+        })
+
+        await sleep(3000)   // 网络空闲时，再继续等待3秒
+
+        await page.waitForSelector('.more')   // class='more' 的 div
+
+        for (let i = 0; i < 1; i++ ) {         // 只点击按钮一次
+            await sleep(3000)
+            await page.click('.more')
+        }
+
+
+        // 获取网页内容
+        const result = await page.evaluate(() => {
+            var $ = window.$        // 由于页面中 本身加载了 jQuery，所以这里直接使用就行
+            var items = $('.list-wp a')        // 获取本页面 所有电影列表的 item
+            var links = []
+
+            if (items.length >= 1) {           // 如果items 不为空
+                items.each((index, item) => {
+                    let it = $(item)
+                    let doubanID = it.find('div').data('id')
+                    let title = it.find('p').html()
+                    let rate = Number(it.find('strong').text())
+                    let poster = it.find('img').attr('src')
+
+                    if(title){
+                        title = title.replace(/[\s|\n\r]/g, '').replace(/<strong>([\s\S]*?)<\/strong>/, '')
+                    }
+                    if(poster){ // 如果存在。 如果不判断 可能会报错
+                        poster = poster.replace('s_ratio', 'l_ratio')   // 将小图片 换成大图片
+                    }
+
+                    links.push({
+                        doubanID,
+                        title,
+                        rate,
+                        poster
+                    })
+                })
+            }
+
+            return links
+        })
+
+        browser.close()
+
+        console.log(result)
+
+        process.send({result})      // 将结果发送出去
+        process.exit(0)             // 退出程序
+    })()
+    ```
+    - 执行代码 验证一下 `node server/tasks/movies.js`
+
+- ## 6-4 服务器端通过 request 向豆瓣 api 请求详细数据
+    - 前言
+        - 互联网上的 **`信息传递`**，都是基于各种 **`请求和返回`** , 比如说基于 TCP/IP 的 HTTP 协议
+        - 而上节课 我们的方法 比较不一样，他是在本地 启动一个 puppeteer 无界面浏览器（Headless browser），**`来爬一些 比较难以爬取的数据`**
+            - 请求网页 -》 分析文本 -》 提取目标信息
+        - 本节，我们介绍 平常 服务器端 对 服务器端 的数据请求 ，也就是 HTTP 协议请求
+    - 搜索 `douban API` , 找到 豆瓣API 官网 https://douban-api-docs.zce.me/
+        - 找到 电影条目信息 https://douban-api-docs.zce.me/movie.html#subject
+    - 遇到的问题
+        - 豆瓣接口调用失败
+            - http://api.douban.com/v2/movie/subject/1764796
+            - 当我直接访问上面的连接时，回返回下面的 错误提示
+            ```
+            {
+                msg: "invalid_apikey, Please contact bd-team@douban.com for authorized access.",
+                code: 104,
+                request: "GET /v2/movie/subject/1764796"
+            }
+            ```
+        - 解:
+            - 豆瓣API有变化，需要在请求API的url后面跟一个apikey参数：
+
+            - 电影列表API：http://api.douban.com/v2/movie/in_theaters?apikey=0df993c66c0c636e29ecbb5344252a4a&start=0&count=10
+
+            - 电影详情API：`http://api.douban.com/v2/movie/subject/${event.movieid}?apikey=0df993c66c0c636e29ecbb5344252a4a`
+        - 最终解：http://api.douban.com/v2/movie/subject/1764796?apikey=0df993c66c0c636e29ecbb5344252a4a
+
+    - 安装 `npm i request-promise-native`
+        - `npm i request`
+
+    ```js
+    // /server/tasks/douban_api.js
+
+    // http://api.douban.com/v2/movie/subject/1764796?apikey=0df993c66c0c636e29ecbb5344252a4a
+
+
+    const rp = require('request-promise-native')    // 引入发起请求的库.  request-promise-native 实际上就是 request 的上层封装
+
+    async function fetchMovie (item) {
+        const url = `http://api.douban.com/v2/movie/subject/${item.doubanID}?apikey=0df993c66c0c636e29ecbb5344252a4a`
+
+        const res = await rp(url)
+
+        return res
+    }
+
+    ;(async () => {
+        let movies = [
+            {
+                doubanID: 27119724,
+                title: '小丑',
+                rate: 8.7,
+                poster: 'https://img9.doubanio.com/view/photo/l_ratio_poster/public/p2567198874.jpg'
+            },
+            {
+                doubanID: 26100958,
+                title: '复仇者联盟4：终局之战',
+                rate: 8.5,
+                poster: 'https://img9.doubanio.com/view/photo/l_ratio_poster/public/p2552058346.jpg'
+            }
+        ]
+
+        movies.map(async movie => {     // 遍历数组
+            let movieData = await fetchMovie(movie)
+
+            console.log(movieData)
+        })
+
+    })()
+    ```
+    - 执行脚本 能打印出爬出结果，即为 脚本没有错误
+
+- ## 6-5 scott 与妹子合租引发的同步异步与阻塞
+- ## 6-6 puppeteer 深度爬取封面图和视频地址
+    - 本节目标：
+        - 爬取 视频地址
+        - 爬取 视频封面图
+    ```js
+    // /server/crawler/movie.js
+
+    const puppeteer = require('puppeteer')
+
+    console.log('You in...')
+
+    const url = 'https://movie.douban.com/subject/'
+    const doubanID = 1652592
+    // const video = 'https://movie.douban.com/trailer/243269/'
+
+    const sleep = time => new Promise( resolve => {
+        setTimeout(resolve, time)
+    })
+
+    ;(async () => {
+        console.log('Start visit the target page...')
+
+        const browser = await puppeteer.launch({
+            args: ['--no-sandbox'],
+            dumpio: false
+        })
+
+        const page = await browser.newPage()
+        await page.goto( url + doubanID, {
+            waitUntil: 'networkidle2'    // 当网络空闲时。说明网络资源加载完毕
+        })
+
+        await sleep(3000)   // 网络空闲时，再继续等待3秒
+
+        // 获取网页内容
+        const result = await page.evaluate(() => {
+            var $ = window.$        // 由于页面中 本身加载了 jQuery，所以这里直接使用就行
+            var it = $('.related-pic-video')
+
+            if ( it && it.length > 0 ) {        // 如果这个 div 存在
+                var link = it.attr('href')
+                var coverImage = it.attr('style')
+                
+                return {
+                    link,
+                    coverImage
+                }
+            }
+
+            return {}
+        })
+
+
+
+        let video
+
+        if (result.link) {      // 如果有视频 预告片
+            await page.goto(result.link, {      // page.goto   页面跳转
+                waitUntil: 'networkidle2'
+            })
+            await sleep(2000)
+
+            video = await page.evaluate( () => {
+                var $ = window.$    // 获取 jquery
+                var it = $('source')
+
+                if ( it && it.length > 0 ) {
+                    return it.attr('src')
+                }
+
+                return ''   // 如果没有视频
+            })
+        }
+
+        // 数据拼装
+        const data = {
+            doubanID,
+            coverImage: result.coverImage,
+            video
+        }
+
+
+        browser.close()
+
+        console.log(data)
+
+        process.send(data)      // 将结果发送出去
+        process.exit(0)             // 退出程序
+    })()
+    ```
+    ```js
+    // /server/tasks/trailer.js
+
+    const cp = require('child_process')
+    const { resolve } = require('path')
+
+    ;(async () => {     // 自动执行函数
+        const script = resolve(__dirname, '../crawler/movie')
+        const child = cp.fork(script, [])       // fork 可以派生出一个子进程。通过 child_process.fork 来执行我们要 跑的脚本
+        let invoked = false             // 表示 这个脚本是否有 执行过
+
+        child.on('error', err => {
+            if (invoked) return         // 如果执行过，直接 return
+
+            invoked = true
+
+            console.log(err)
+        })
+
+        child.on('exit', code => {
+            if (invoked) return
+
+            invoked = true
+            let err = code === 0 ? null : new Error('exit code ' + code)
+
+            console.log(err)
+        })
+
+        child.on('message', data => {
+            console.log(data)
+        })
+
+    })()
+    ```
+    - 执行脚本 `node server/tasks/trailer.js`
+    - 打印结果
+        ```
+        You in...
+        Start visit the target page...
+        {
+            doubanID: 1652592,
+            coverImage: 'background-image:url(https://img1.doubanio.com/img/trailer/medium/2545038147.jpg?)',
+            video: 'http://vt1.doubanio.com/202001121811/3c584fc7b6d3bf46a64cd4c1fd90ad4a/view/movie/M/402410829.mp4'
+        }
+        {
+            doubanID: 1652592,
+            coverImage: 'background-image:url(https://img1.doubanio.com/img/trailer/medium/2545038147.jpg?)',
+            video: 'http://vt1.doubanio.com/202001121811/3c584fc7b6d3bf46a64cd4c1fd90ad4a/view/movie/M/402410829.mp4'
+        }
+        null
+        ```
+
+- ## 6-7 上传线上封面图和视频搬砖到七牛云图床上
+    - 由于这个节课 视频文件是 .exe ，下载最新 迅雷影音 双击即可播放
+    - 为啥要另外上传到 **`对象存储`** 上？
+        - 因为网络资源 有时候会不稳定，现在能访问，过一会就可能 无法访问了，**`数据源不可靠`**
+        - 所以，我们要把它下载下来，保存在 自己可控 的地方
+        - 但是，由于视频什么的，文件体积非常大，保存到服务器中，又很占地方
+        - 所以，我们把 数据 上传到第三方的 **`对象存储`** 是最合适的
+    - ### 怎么上传？
+        - 1.我们先执行代码 `/server/crawler/movie.js` 和 `/server/tasks/movies.js`
+            - 拿到 一条电影 资源数据
+            - 然后 我们需要把 电影的 预告片视频，图片 上传到 七牛图床 上去
+            ```js
+            let movies = [{
+                doubanID: 27119724,
+                coverImage: 'background-image:url(https://img1.doubanio.com/img/trailer/medium/2567151398.jpg?)',
+                video: 'http://vt1.doubanio.com/202001181136/1916c3c70a7f98a747790516303480e4/view/movie/M/402510982.mp4',
+                poster: 'https://img9.doubanio.com/view/photo/l_ratio_poster/public/p2567198874.jpg'
+            }]
+            ```
+        - 2.配置文件
+            - AccessKey/SecretKey 在 [个人中心 - 密钥管理](https://portal.qiniu.com/user/key) 里
+            ```js
+            // /server/config/index.js
+            module.exports = {
+                "qiniu": {
+                    "bucket": "threeki-douban",
+                    "video": "http://video.iblack7.com/",
+                    "AK": "",       // AccessKey
+                    "SK": ""        // SecretKey
+                }
+            }
+            ```
+        - 3.上传逻辑代码
+            - [《Nano ID》 - js唯一ID生成器](https://www.xttblog.com/?p=1735)
+            ```js
+            // /server/tasks/qiniu.js
+
+            // 我们需要把 电影的 预告片视频，图片 上传到 七牛图床 上去
+
+            const qiniu = require('qiniu')
+            const nanoid = require('nanoid')    // 随机ID生成器
+            const config = require('../config')
+
+            const bucket = config.qiniu.bucket
+            const mac = new qiniu.auth.digest.Mac(config.qiniu.AK, config.qiniu.SK)
+            const cfg = new qiniu.conf.Config()
+            const client = new qiniu.rs.BucketManager(mac, cfg)        // 七牛上传对象
+
+            const uploadToQiniu = async (url, key) => {
+                return new Promise((resolve, reject) => {
+                    client.fetch(url, bucket, key, (err, ret, info) => {    // client.fetch 能够获取网络静态资源
+                        if (err) {
+                            reject(err)
+                        } else {
+                            if (info.statusCode == 200) {
+                                resolve({ key })
+                            } else {
+                                reject(info)
+                            }
+                        }
+                    })
+                })
+            }
+
+
+
+            ;(async () => {
+                let movies = [{
+                    doubanID: 27119724,
+                    coverImage: 'https://img1.doubanio.com/img/trailer/medium/2567151398.jpg',
+                    video: 'http://vt1.doubanio.com/202001181136/1916c3c70a7f98a747790516303480e4/view/movie/M/402510982.mp4',
+                    poster: 'https://img9.doubanio.com/view/photo/l_ratio_poster/public/p2567198874.jpg'
+                }]
+
+                movies.map(async movie => {
+                    if (movie.video && !movie.key) {
+                        try {
+                            console.log('开始传 video')
+
+                            let videoData = await uploadToQiniu(movie.video, nanoid() + '.mp4')
+
+                            console.log('开始传 coverImage')
+
+                            let coverImageData = await uploadToQiniu(movie.coverImage, nanoid() + '.jpg')
+
+                            console.log('开始传 poster')
+
+                            let posterData = await uploadToQiniu(movie.poster, nanoid() + '.jpg')
+
+                            if (videoData.key) {
+                                movie.videoKey = videoData.key
+                            }
+                            if (coverImageData.key) {
+                                movie.coverImageKey = coverImageData.key
+                            }
+                            if (posterData.key) {
+                                movie.posterKey = posterData.key
+                            }
+                            console.log('正确 ', movie)
+                        } catch (err) {
+                            console.log('错误', err)
+                        }
+                    }
+                })
+                
+            })()
+            ```
+        - 4.执行代码 `node server/tasks/qiniu.js`
+            ```
+            开始传 video
+            开始传 coverImage
+            开始传 poster
+            正确  {
+                doubanID: 27119724,
+                coverImage: 'https://img1.doubanio.com/img/trailer/medium/2567151398.jpg',
+                video: 'http://vt1.doubanio.com/202001181136/1916c3c70a7f98a747790516303480e4/view/movie/M/402510982.mp4',
+                poster: 'https://img9.doubanio.com/view/photo/l_ratio_poster/public/p2567198874.jpg',
+                videoKey: '0EOLAFiGwePfbJmll9ORA.mp4',
+                coverImageKey: 'tMf5ckCnv_WWHzgDg2CA3.jpg',
+                posterKey: 'vCLNfXVkfGCV5DW9y5AI7.jpg'
+            }
+            ```
+
+
+# 第7章 彩蛋篇 - [高难度拔高干货] 深度理解 Node.js 异步 IO 模型
+
+        ```
+        ···············
+        ·             ·
+        ·   进程模型   ·
+        ·             ·
+        ···············
+
+            - 子进程模型
+
+            - 进程的9个问题
+                - 什么是同步异步
+                - 什么是异步IO
+                - 什么是阻塞非阻塞
+                - 什么是事件循环与事件驱动
+                - 什么是单线程
+                - 什么是进程
+                - 什么是子进程
+                - 怎样启动子进程
+                - 进程间如何通信
+
+        ```
+- ## 7-1 前言
+- ## 7-2 从异步非阻塞的代码案例切入事件循环
+    - 什么是IO？
+        - Input / Output
+        - 说白了，就是数据的进出
+    - 3个线索
+        - process.nextTick 优先级
+        - libuv 相关知识
+        - eventEmitter 
+    - ### 看下面代码，先自己 预测一下 它们的执行顺序，然后再执行代码 验证结果
+    ```js
+    const { readFile } = require('fs')
+    const EventEmitter = require('events')
+
+    class EE extends EventEmitter {}
+
+    const yy = new EE()
+
+    yy.on('event', () => {
+        console.log('出大事了！')
+    })
+
+    setTimeout(() => {
+        console.log('0 毫秒后到期执行的定时器回调')
+    }, 0)
+
+    setTimeout(() => {
+        console.log('100 毫秒后到期执行的定时器回调')
+    }, 100)
+
+    setTimeout(() => {
+        console.log('200 毫秒后到期执行的定时器回调')
+    }, 200)
+
+    readFile('../package.json', 'utf-8', data => {
+        console.log('完成文件 1 读取操作的回调')
+    })
+
+    readFile('../README.md', 'utf-8', data => {
+        console.log('完成文件 2 读取操作的回调')
+    })
+
+    setImmediate(() => {
+        console.log('immediate 立即回调')
+    })
+
+    process.nextTick(() => {
+        console.log('process.nextTick 的回调')
+    })
+
+    Promise.resolve()
+        .then(() => {
+            yy.emit('event')
+
+            process.nextTick(() => {
+                console.log('process.nextTick 的第 2 次回调')
+            })
+
+            console.log('Promise 的第 1 次回调')
+        })
+        .then(() => {
+            console.log('Promise 的第 2 次回调')
+        })
+    ```
+    
+- ## 7-3 从libuv 源码来理解event loop的六个阶段
+    - 前言
+        - Node.js 采用 Google Chrome V8 作为脚本解释引擎
+        - 在 处理 IO 方面，采用的是 自家设计的 libuv
+            - libuv 是一座桥 ，它封装了 针对不同系统的 IO 操作，向上呢 对 Node.js 提供了一致的 异步非阻塞接口 和 事件循环
+            - 当我们讨论 事件循环 的时候，往往都和 libuv 息息相关，下面 我们来看 libuv 的代码
+    - 打开 libuv github 代码
+        - https://github.com/libuv/libuv
+        - 按 t 键会打开一个文件浏览器，搜索 `core.c`, 选择 `unix/core.c` 文件
+        - 看里面的 核心函数 `uv_run()`
+            - `uv_loop_t` 就是事件循环结构, 每次执行 `uv_run` 的时候 都会执行 **`事件循环迭代`** ( iteration )
+            - **`迭代`** ( iteration )，我们之前的课程 也介绍过：把一个对象 内部运行的几个状态 通过 next() 这样的语法糖 可以把 它一层层的迭代完毕
+            - 这里 uv_run() 也是一样的
+        - 里面有个 while , 会依次去执行 
+            ```c
+            uv__update_time()
+            uv__run_timers()
+            uv__run_pending()
+            uv__run_idle()
+            uv__run_prepare()
+            uv__io_poll()
+            uv__run_check()
+            uv__run_closing_handles()
+            ```
+            - 这8个函数 可以看作是 头尾相连 的阶段，它们串起来 就组成了 **`事件循环的完整过程`**
+                - 所谓的循环 就是这个 while 的循环了
+                - 所谓的处理顺序 无非就是这几个 函数调用来 调用去
+                - 事件循环 (event loop) 每次跑一圈 都是经过这里面的几个阶段
+            - 但是 这几个函数是做什么的呢？
+                - https://nodejs.org/en/docs/guides/event-loop-timers-and-nexttick/
+                - 这篇文章 非常完整的介绍了 Node.js 的事件循环模型
+                - ### 什么是事件循环？
+                    - 事件循环 就是允许 node.js 去执行一些 异步非阻塞的操作，因为 js 是单线程的，所以 这些异步操作 都交给 **操作系统的内核** 去做。操作系统 基本都是 多线程的，可以在后台 同时处理 多个不同的操作。
+                    - 一旦 某个操作完成了 比如说 文件读取到了，内核 就会通知 node.js 在合适的时机 去执行一个回调函数。
+                    - 而这个时机，就是 我们上面提到的 uv_run() 里的 8个函数
+                - ### 事件循环说明 Event Loop Explained
+                    - 这个 8个函数 有自己的执行顺序
+                    - 这个顺序 就是 下面这张图
+                    - node.js 在启动的时候会 **`初始化事件循环`**
+                    - 然后 处理在 node.js 中运行的代码，这些代码中 包含各种 api 的调用
+                    - 然后才运行事件循环
+                    ```
+                       ┌───────────────────────────┐
+                    ┌─>│           timers          │
+                    │  └─────────────┬─────────────┘
+                    │  ┌─────────────┴─────────────┐
+                    │  │   pending callbacks (I/O) │
+                    │  └─────────────┬─────────────┘
+                    │  ┌─────────────┴─────────────┐
+                    │  │       idle, prepare       │
+                    │  └─────────────┬─────────────┘      ┌───────────────┐
+                    │  ┌─────────────┴─────────────┐      │   incoming:   │
+                    │  │           poll            │<─────┤  connections, │
+                    │  └─────────────┬─────────────┘      │   data, etc.  │
+                    │  ┌─────────────┴─────────────┐      └───────────────┘
+                    │  │           check           │
+                    │  └─────────────┬─────────────┘
+                    │  ┌─────────────┴─────────────┐
+                    └──┤      close callbacks      │
+                       └───────────────────────────┘
+                    ```
+                    - 它把 idle, prepare 并成了一个，而且 拿掉了 uv__update_time(), 整理成了 6个阶段
+                    - 事件循环 6个阶段
+                        - #### 第一阶段：timmer
+                            - `setTimeout, setInterval` 在这个阶段被执行。这个阶段 对应的 源代码 就是 `uv__run_timers()`
+                        - #### 第二阶段：pending callbacks (I/O callbacks) 
+                            - 执行一些错误处理，如 socket , stream , TCP , Pipe。这个阶段 对应的 源代码 就是 `uv__run_pending`
+                        - #### 第三阶段：idle, prepare 阶段
+                        - #### 第四阶段：poll 轮循阶段
+                            - 向系统去获取 新的 I/O 事件，执行对应的 I/O 回调
+                                - 首先他会来处理 到期的定时器 的回调
+                                - 然后处理 poll 队列中的回调
+                                - **`直到队列中的回调 全部被清空，或者达到处理上限`**
+                            - 如果队列不为空的话，刚好有 setImmediate 那么他就会终止当前 poll 阶段，前往 **`check阶段`**
+                            - 如果没有 setImmediate 的话，node.js 会去查看有没有 定时器任务到期了
+                                - 如果有的话，就前往 **`timmer阶段`** 来执行 `定时器的回调`
+                        - #### 第五阶段：check 阶段
+                            - 在 check 阶段 会执行 `Immediate`回调，而且 setImmediate回调 只能在 **`check阶段`** 来执行
+                        - #### 第六阶段：close callbacks 阶段
+                            - 执行 `on('close')` 这样一个结束的回调
+                    - 基本上事件循环是 **`按照这个模型顺序执行的`**，但是有的时候 会被外界 **`事件所触发 或者 显示调用`** 而触发
+                    - process.nextTick 
+                        - 是在任意两个阶段中间，只要有 `process.nextTick` 还未被执行，那么就优先执行他的回调。
+                        - `Promise.resolve()` 是仅次于 `process.nextTick` 优先级的
+
+
+        ```c
+        /* /src/unix/core.c */
+
+        int uv_run(uv_loop_t* loop, uv_run_mode mode) {
+          int timeout;
+          int r;
+          int ran_pending;
+
+          r = uv__loop_alive(loop);
+          if (!r)
+            uv__update_time(loop);
+
+          while (r != 0 && loop->stop_flag == 0) {
+            uv__update_time(loop);
+            uv__run_timers(loop);
+            ran_pending = uv__run_pending(loop);
+            uv__run_idle(loop);
+            uv__run_prepare(loop);
+
+            timeout = 0;
+            if ((mode == UV_RUN_ONCE && !ran_pending) || mode == UV_RUN_DEFAULT)
+              timeout = uv_backend_timeout(loop);
+
+            uv__io_poll(loop, timeout);
+            uv__run_check(loop);
+            uv__run_closing_handles(loop);
+
+            if (mode == UV_RUN_ONCE) {
+              /* UV_RUN_ONCE implies forward progress: at least one callback must have
+              * been invoked when it returns. uv__io_poll() can return without doing
+              * I/O (meaning: no callbacks) when its timeout expires - which means we
+              * have pending timers that satisfy the forward progress constraint.
+              *
+              * UV_RUN_NOWAIT makes no guarantees about progress so it's omitted from
+              * the check.
+              */
+              uv__update_time(loop);
+              uv__run_timers(loop);
+            }
+
+            r = uv__loop_alive(loop);
+            if (mode == UV_RUN_ONCE || mode == UV_RUN_NOWAIT)
+              break;
+          }
+
+          /* The if statement lets gcc compile it to a conditional store. Avoids
+          * dirtying a cache line.
+          */
+          if (loop->stop_flag != 0)
+            loop->stop_flag = 0;
+
+          return r;
+        }
+        ```
+    - 执行顺序 解读
+        ```js
+        const { readFile } = require('fs')
+        const EventEmitter = require('events')
+
+        class EE extends EventEmitter {}
+
+        const yy = new EE()
+
+        yy.on('event', () => {
+            console.log('出大事了！')
+        })
+
+        setTimeout(() => {
+            console.log('0 毫秒后到期执行的定时器回调')
+        }, 0)
+
+        setTimeout(() => {
+            console.log('100 毫秒后到期执行的定时器回调')
+        }, 100)
+
+        setTimeout(() => {
+            console.log('200 毫秒后到期执行的定时器回调')
+        }, 200)
+
+        readFile('../package.json', 'utf-8', data => {
+            console.log('完成文件 1 读取操作的回调')
+        })
+
+        readFile('../README.md', 'utf-8', data => {
+            console.log('完成文件 2 读取操作的回调')
+        })
+
+        setImmediate(() => {
+            console.log('immediate 立即回调')
+        })
+
+        process.nextTick(() => {
+            console.log('process.nextTick 的回调')
+        })
+
+        Promise.resolve()
+            .then(() => {
+                yy.emit('event')
+
+                process.nextTick(() => {
+                    console.log('process.nextTick 的第 2 次回调')
+                })
+
+                console.log('Promise 的第 1 次回调')
+            })
+            .then(() => {
+                console.log('Promise 的第 2 次回调')
+            })
+        ```
+        - 上一节的 脚本执行后，结果如下
+        ```
+        process.nextTick 的回调
+        出大事了！
+        Promise 的第 1 次回调
+        Promise 的第 2 次回调
+        process.nextTick 的第 2 次回调
+        0 毫秒后到期执行的定时器回调
+        完成文件 1 读取操作的回调
+        immediate 立即回调
+        完成文件 2 读取操作的回调
+        100 毫秒后到期执行的定时器回调
+        200 毫秒后到期执行的定时器回调
+        ```
+        - 1.首先 在第一个阶段之前，已经有了 `process.nextTick`, 所以会先执行 `process.nextTick`
+        - 2.然后就是 `promise.resolve()`, 它是 仅次于 `promise.nextTick` 优先级的
+            - 在 执行 `promise.resolve()` 的时候，遇到了 第一个 `.then()` 
+            - 然后 按顺序执行
+            - 这其中，又注册了 `process.nextTick()` ，所以，在执行完 `promise.resolve()` 后 会立刻执行下一个 `process.nextTick()`
+        - 3.当 `process.nextTick()` 和 `promise.resolve()` 都执行完后，就会进入 **`timers阶段`**
+            - `setTimeout, setInterval` 都会被在这个 **`timers阶段`** 注册
+            - 定时器为零的 会被立刻执行 `setTimeout(() => {}, 0)`
+            - 定时器 没到期的，会被暂时搁置，直接进入下一个阶段
+        - 4.Poll阶段
+            - 前面 `timers阶段` 走完后, 进入 Poll阶段，**`I/O 操作`** 都会在这个阶段 执行
+            - 所以两个 `readFile()` 会被开始执行
+        - 5.当 poll队列 被清空之后，发现有 **`setImmediate 回调函数`** , 然后执行 **`setImmediate`**
+        - 6.最后在时间到了 就执行 剩下的两个 100ms 200ms 的 timers
+
+- ## 7-4 设计一个测试用例来验证自己对事件循环的理解
+    - 视频28分钟，暂时搁置  以后学深了  再回来看
+
+# 第8章 实战篇 - 在 Koa 中向 MongoDB 建立数据模型
+- ## 8-1 windows mac centos ubuntu安装mongodb-1
+    - [MongoDB Compass GUI 可视化软件](https://www.mongodb.com/products/compass)
+        - [MongoDB Compass 使用教程](https://www.youtube.com/watch?v=o4flC4e9Qmc)
+    - mac安装 mongodb
+        - 课程视频时间 13:50
+        - Homebrew
+            - https://brew.sh/
+            - 先安装 Homebrew
+                - `/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"`
+                - 手动安装 Homebrew
+                    ```
+                    注:Mac下/usr/local目录默认是对于Finder是隐藏，如果需要到/usr/local下去，打开Finder，然后使用command+shift+G，在弹出的目录中填写/usr/local就可以了。
+ 
+                    Homebrew的安装建议直接在官方Git下载后手动安装：
+
+                    1、下载Homebrew Git上所有文件 https://github.com/Homebrew/brew
+
+                    2、把Homebrew文件夹中的文件复制到/usr/local/目录下，如果没有的文件夹请自行创建。
+
+                    3、然后打开终端brew -v显示版本即安装成功。可以brew update更新一下
+
+                    链接：https://www.zhihu.com/question/35928898/answer/133380744
+                    来源：知乎
+                    ```
+                - 如果安装不了，参考 [《安装homebrew报错curl: (7) Failed to connect to raw.githubusercontent.com port 443: Operation》](https://www.jianshu.com/p/68efabd2e32b)
+        - Homebrew 是什么？
+            - macOS 缺失的软件包管理工具
+        ```
+        brew -v      显示版本即安装成功
+
+        brew install mongodb         通过 Homebrew 安装 mongodb // 2019年 无法通过这个命令安装 mongodb
+
+        brew info mongodb        查看 帮助提示
+
+        brew services start mongodb      开启 mongodb 服务
+        ```
+
+    - 安装 mongodb
+        - 这里是 安装 mac 版本的
+        - https://www.mongodb.com/download-center/community
+        - 安装参考文章 [mac安装mongodb4.2及php7.2的mongodb扩展](https://www.phpnote.cc/mac-mongodb42-php72)
+        - 安装完成后，我们可以把 MongoDB 的二进制命令文件目录（安装目录/bin）添加到 PATH 路径中：
+        
+        ```shell
+        export PATH=/usr/local/mongodb/bin:$PATH    ## 添加全局变量
+        ```
+        ```shell
+        brew tap mongodb/brew
+        ## 终端添加自定义的mongodb第三方 https://github.com/mongodb/homebrew-brew
+
+        brew install mongodb-community@4.2
+        ## 安装mongodb4.2
+
+        brew services start mongodb-community@4.2
+        ## 运行mongodb4.2
+
+        brew services stop mongodb-community@4.2
+        ## 关闭
+
+
+
+
+        ## 常用mongodb操作
+
+        mongod -version
+
+        mongo --host 127.0.0.1:27017 
+        ## 连接到本地数据库
+
+        > show dbs
+        douban-trailer  0.000GB
+        ## 查看数据库 
+
+        > use douban-trailer
+        switched to db douban-trailer
+        ## 切换到数据库 
+
+        > show tables
+        dogs
+        ## 查看表
+
+        > db.dogs.find()
+        { "_id" : ObjectId("5e2002d63bc8aa43c41d15b4"), "name" : "阿尔法", "__v" : 0 }
+        ## 查找集合中数据
+
+        db.stats()
+        ## 统计数据信息 
+
+        db.user.insert({name:”phpnote.cc”,password:”123456″})
+        ##指定集合写入数据 
+        ```
+
+- ## 8-2 koa2 中利用 mongoose链接数据库
+    - mongoose 是一个 连接器，连接 mongodb 数据库 和 node.js 连接器
+    - 安装 `npm i mongoose`
+    - ## 定义连接数据库方法
+        ```js
+        // /server/database/init.js
+        
+        const mongoose = require('mongoose')
+        const DATABASE_URL = 'mongodb://localhost/douban-trailer' // 数据库地址
+        // const DATABASE_URL = 'mongodb://127.0.0.1:27017/'
+
+        mongoose.Promise = global.Promise               // 指定 Promise 是 node 原生 promise，而不是 mongoose 自带的 promise
+
+        function _connect() {
+            // console.log('you in _connect')
+            // mongoose.connect(db, {                      // 连接数据库, 填入地址
+            //     // useUnifiedTopology: true,
+            //     useNewUrlParser: true,
+            // })
+
+            mongoose.connect(DATABASE_URL, { 
+                useNewUrlParser: true, 
+                useUnifiedTopology: true,
+            }, (err, connection) => {
+                if(err) {
+                    console.error(err)
+                    return
+                }    
+                // console.log('Connected to DB');
+            }).catch(err => console.log(err));
+        }
+
+        exports.connect = () => {      
+            let maxConnectTimes = 0
+
+            /* 为什么要返回 promise？
+            * 是为了 让我们 在外面，确保连到数据库之后，继续后面 的代码
+            */
+            return new Promise((resolve, reject) => {
+
+                // 暴露一个 connect 方法
+                if (process.env.NODE_ENV !== 'production') {    // 判断是不是 生产环境
+                    mongoose.set('debug', true)             // 打印日志内容
+                }
+            
+                _connect()
+            
+                mongoose.connection.on('disconnected', () => {   // 当断开连接时
+                    maxConnectTimes ++
+                    if (maxConnectTimes < 5) {
+                        _connect()
+                    } else {
+                        throw new Error('Disconnected: 数据库重连超过5次，并失败了')
+                        // console.log('Disconnected: 数据库重连超过5次，并失败了')
+                    }
+                })
+            
+                mongoose.connection.on('error', err => {
+
+                    maxConnectTimes ++
+                    if (maxConnectTimes < 5) {
+                        _connect()
+                    } else {
+                        // throw new Error('Error: 数据库重连超过5次，并失败了')
+                        console.log('Error: 数据库重连超过5次，并失败了')
+                        reject(err)
+                    }
+                })
+            
+                mongoose.connection.once('open', () => {
+                    console.log('MongoDB Connected Successfully !')
+                    resolve()
+                })
+
+            })
+        }        
+        ```
+    - ## 调用连接方法
+        ```js
+        // /server/index.js
+
+        const Koa = require('koa')
+        const app = new Koa()
+        const views = require('koa-views')
+        const { resolve } = require('path')
+        const { connect } = require('./database/init')
+
+        ;(async () => {
+            await connect()     // 调用连接方法, 连接 mongodb 数据库
+        })()
+
+        app.use(views(resolve(__dirname, './views'), {
+            extension: 'pug'
+        }))
+
+        app.use(async (ctx, next) => {
+            await ctx.render('index', {
+                you: 'Luke',
+                me: 'Scoot'
+            })
+        })
+
+        app.listen(2333)
+        ```
+    - ## 插入数据
+        - 临时插入：
+            - 在上面 init.js 的 `mongoose.connection.once('open')` 中写
+        ```js
+        // /server/database/init.js
+
+        mongoose.connection.once('open', () => {
+            const Dog = mongoose.model('Dog', { name: String })
+            const doga = new Dog({ name: '阿尔法' })
+
+            doga.save().then(() => {
+                console.log('wang')
+            })
+
+            console.log('MongoDB Connected Successfully !')
+            resolve()
+        })
+        ```
+
+- ## 8-3 mongodb和mongoose关于 collection schema model entity 的基本
+    - 概念
+        - 数据库驱动：mySQL, Orcale 这些关系型数据库, 针对不同的语言 都有对应的驱动实现 如 Java Ruby...
+        - 在 MogoDB 里面，我们使用 Mongoose 作为数据库驱动
+    - 在上一节，我们简单的把 连接、插入数据 的流程跑通了，但是 有些概念还是 不清楚
+    - 概念
+        ```
+        MongoDB
+            - document      : 文档，相当于是 是关系型数据库的一行记录
+            - collection    : 集合，相当于是 关系型数据的 一张表
+            - database      : 数据库, 可以理解成 关系型数据库的 database
+
+        Mongoose
+            - schema
+            - model
+            - entity
+        ```
+        - ### document
+            - 文档，由 键值对 组成的，是 mongoDB 的核心单元
+            - 相当于是 是关系型数据库的一行记录
+        - ### collection
+            - 集合，是多个文档、多行记录的集合、多部电影、多个记录、多个用户 可以组成一个集合。
+            - 相当于是 关系型数据的 一张表
+        - ### database
+            - 这个比较容易理解，把 逻辑、或业务上 有关系的 collection 把它们组织在一起 就是一个数据库了。
+            - 这个 database 可以理解成 关系型数据库的 database ，里面可以有 电影表、用户表... 等
+        - ### Mongoose
+            - 一个函数集合
+            - Mongoose 是在 MongoDB驱动 之上，继续抽象 和 封装 的 对象模型工具。
+            - 通过 Mongoose 可以让我们在 数据层面 和 代码层面 更容易使用，门槛比较低
+        - ### schema
+            - 数据定义
+            - schema 可以看作是 mongoose 中的一种数据模式，或者 数据定义
+            - 可以参考 mySQL 中 创建表的时候，每个字段是什么类型，长度... 
+        - ### model
+            - 数据操作模型
+            - 模型
+            - 具备 某张表 操作能力的函数集合，增删改查
+        - ### entity
+            - 某条数据的 自我修改能力
+            - entity 是 model 创建的实体
+        ```
+        ducument -- 多条数据 组成 --> collection -- 多个表 组成 --> database
+
+        ··············
+        ·            ·
+        ·  ducument  ·  --┓
+        ·            ·    |
+        ··············    |
+                          |
+                      多条数据 组成
+                          |
+        ··············    |
+        ·            ·  ←-┛
+        · collection ·  --┓
+        ·            ·    |
+        ··············    |
+                          |
+                          |
+                      多个表 组成
+                          |
+        ··············    |
+        ·            ·    |
+        ·  database  ·  ←-┛
+        ·            ·
+        ··············
+        ```
+        ```
+        schema  -- 发布生成 -->  model  -- 创建 --> entity
+
+        ··············
+        ·            ·
+        ·   schema   ·  --┓
+        ·            ·    |
+        ··············    |
+                          |
+                        发布生成
+                          |
+        ··············    |
+        ·            ·  ←-┛
+        ·    model   ·  --┓
+        ·            ·    |
+        ··············    |
+                          |
+                          |
+                         创建
+                          |
+        ··············    |
+        ·            ·    |
+        ·   entity   ·  ←-┛
+        ·            ·
+        ··············
+        ```
+
+- ## 8-4 利用 schema model创建电影的数据模型
+    - 项目目录
+        ```
+        +  |- /dist
+        +  |- /node_modules
+        +  |- /server
+              |- index.js
+        +     |- /template
+        +     |- /views
+        +     |- /crawler
+        +     |- /database
+                 |- init.js
+        +        |- /schema        // schema 里面放 所有的 模型定义文件
+                    |- movie.js    // 电影的数据模型
+        +  |- /src
+            |- package-lock.json
+            |- package.json
+        ```
+        
+    ```
+    MongDB 数据类型
+
+    String
+    Number
+    Array
+    Date
+    Buffer
+    ObjectId    // 不需要 声明，是 唯一识别符。是 mongodb 一个特有 数据类型
+    Mixed       // 这个 Mixed 比较特殊，他比较适用于 数据类型、数据结构 变换比较频繁的场景，它可以存储 任何数据类型的数据
+    ```
+    ```js
+    // /server/database/schema/movie.js
+
+    const mongoose = require('mongoose')      // 使用 mongoose 来建模
+    const Schema = mongoose.Schema      // 拿到建模工具
+    const { Mixed, ObjectID } = Schema.Types
+
+    // 基于数据模型的定义
+    const movieSchema = new Schema({
+        doubanID: {
+            unique: true,
+            type: String
+        },
+
+        category: [{
+            type: ObjectID,
+            ref: 'Category'     // 关联表
+        }],
+
+        rate: Number,
+        title: String,
+        summary: String,
+        video: String,
+        poster: String,
+        cover: String,      // 封面图
+
+        // 由于上面的 爬取数据时 获取到的原始地址
+        // 下面这里 是存 你转存后的图床地址  对象存储的地址
+        videoKey: String,
+        posterKey: String,
+        coverKey: String,
+
+        rawTitle: String,   // 原始标题
+        movieTypes: [String],    // 电影类型。 声明为 数组，数组内 每一个值都是 String
+        pubdate: Mixed,     // 上映日期
+        year: Number,       // 上映年份
+        tags: [String],        // 标签
+
+        meta: {     // 描述
+            createdAt: {    // 这条数据被 创建时间
+                type: Date,
+                default: Date.now()
+            },
+            updateAt: {    // 更新时间
+                type: Date,
+                default: Date.now()
+            }
+        }
+    })
+
+    // 创建时间 更新时间  中间件的实现
+    movieSchema.pre('save', function(next) {   // pre save 就是保存之前
+        if (this.isNew) {
+            this.meta.createdAt = this.meta.updateAt = Date.now()
+        } else {
+            this.meta.updateAt = Date.now()
+        }
+
+        next()
+    })
+
+    mongoose.model('Movie', movieSchema)    // 传入模型名字 Movie，具体的 Schema
+    ```
+- ## 8-5 创建用户数据模型并实现加盐加密和敏感登控制
+    - 这节 比较难 暂时跳过
+    - 登陆、注册、密码验证
+        - 对密码的 加盐 加密，密码修改有效期 的控制，密码比对的实现
+        - 
+    - 课前基础 《node 建站攻略（二期）—— 网站升级》《node+mongodb 建站攻略 (一期)》
+        - 《node 建站攻略（二期）—— 网站升级》
+            - 第三章 开发用户的注册 登陆功能
+                - 用户模型 密码处理
+                    - md5 ssha算法 词典暴力破解 
+                    - 为什么要 加密 加盐
+    - 增加 用户登陆 网站是 被破解的难度
+        - 如果用户密码用 明文保存，一旦被 偷库，所有密码都将被暴露，所以这里 要用 密码加密 再保存
+    > 以下代码 没有经过测试，先写到这里，逻辑思路如此
+    ```js
+    // /server/database/schema/user.js
+
+    const mongoose = require('mongoose')      // 使用 mongoose 来建模
+    const bcrypt = require('bcrypt')        // bcrypt 加密库 // 如果是比较老的版本 node ，就用 bcryptjs
+    const Schema = mongoose.Schema      // 拿到建模工具
+    const { Mixed, ObjectID } = Schema.Types
+    const SALT_WORK_FACTOR = 10
+    const MAX_LOGIN_ATTEMPTS = 5            // 最大登陆失败次数
+    const LOCK_TIME = 2 * 60 * 60 * 1000    // 登陆超过最大失败次数，锁定时间 2小时
+
+    // 基于数据模型的定义
+    const userSchema = new Schema({
+        username: {
+            unique: true,
+            require: true,  // 是否必须传
+            type: String
+        },
+        eamil: {
+            unique: true,
+            require: true,  // 是否必须传
+            type: String
+        },
+        password: {
+            // unique: true,
+            tyep: String
+        },
+        loginAttempts: {
+            type: Number,
+            require: true,  // 是否必须传
+            default: 0
+        },
+        lockUntil: Number,  // 如果登陆超过最大失败次数，记录 账户锁定到什么时候. 单位: ms
+
+        meta: {     // 描述
+            createdAt: {    // 这条数据被 创建时间
+                type: Date,
+                default: Date.now()
+            },
+            updateAt: {    // 更新时间
+                type: Date,
+                default: Date.now()
+            }
+        }
+    })
+
+
+    // 虚拟字段
+    // 虚拟字段不会被真正存到 数据库里
+    userSchema.virtual('isLocked').get( funciton () {
+        // lockUntil 要被锁定到什么时候
+        // lockUntil > Date.now() 是否已经过了有效期
+        // 两次取反 拿到 true or false
+        return !!(this.lockUntil && this.lockUntil > Date.now())        // 这里应该是 this.lockUntil < Date.now() 吧？
+    })
+
+
+    // 创建时间 更新时间  中间件的实现
+    userSchema.pre('save', function(next) {   // pre save 就是保存之前
+        if (this.isNew) {
+            this.meta.createdAt = this.meta.updateAt = Date.now()
+        } else {
+            this.meta.updateAt = Date.now()
+        }
+
+        next()
+    })
+
+
+    // 保存之前 对密码加密
+    userSchema.pre('save', function(next) {   // pre save 就是保存之前
+        if (!this.isModified('password')) return next()  // 检查 password 是否更改，如果没有更改了 直接跳过
+
+        // bcrypt 加密库
+        // SALT_WORK_FACTOR 这个值是一个产量，这个值越大 构建对盐的复杂度 越高，消耗的计算机 算力越多
+        bcrypt.genSalt(SALT_WORK_FACTOR, (err, salt) => {
+            if (err) return next(err)      // 如果出错了 就跳过
+
+            // 如果没错，我们拿到 盐值后, 我们通过 hash 对密码加密
+            bcrypt.hash(this.password, salt, (error, hash) => {
+                if (error) return next(error)
+
+                this.password = hash    // 把 password 设置为 加盐加密的 hash值
+                // 走到这一步，这个密码已经不在是 明文的密码了
+
+                next()
+            })
+        })
+
+        next()
+    })
+
+
+    // 比对密码
+    userSchema.methods = {
+        // 密码比对
+        comparePassword: (_password, password) => {
+            // _password 是网站 提交过来的 password
+            // 第二个 password 是 数据库中  加严加密后的 password
+
+            return new Promise((resolve, reject) => {
+                bcrypt.compare(_password, password, (err, isMatch) => {     // isMatch 比较的结果是 true / false
+                    if (!err) resolve(isMatch)      // 如果没有错误，把 isMatch 传出去
+                    else reject(err)
+                })
+            })
+        },
+
+
+
+        // 如果密码被频繁登陆，而且密码都是错的
+        // 就对 这个 账号进行保护，锁定账号，通过其他方式登陆，如短信验证码
+        // 每次密码输错 就+1
+
+        // incLoginAttepts 就是用于 判断登陆次数 是否超过 登陆次数
+        incLoginAttepts: (user) => {
+            return new Promise((resolve, reject) => {
+                // 如果用户已经被锁定
+                if (this.lockUntil && this.lockUntil < Date.now()) {
+                    this.update({
+                        $set: {     // 原子操作
+                            loginAttempts: 1    // 设置为 1
+                        },
+                        $unset: {
+                            lockUntil: 1    // 设置为 1
+                        }
+                    }, (err) => {
+                        if (!err) resolve(true)
+                        else reject(err)
+                    })
+                } else {
+                    let updates = {
+                        $inc: {     // 通过 $inc 这个操作符
+                            loginAttempts: 1    // +1
+                        }
+                    }
+
+                    // 如果尝试登陆次数 大于 最大尝试次数
+                    // 而且 当前用户没被锁定
+                    if (this.loginAttempts + 1 >= MAX_LOGIN_ATTEMPTS && !this.isLocked) {
+                        updates.$set = {
+                            lockUntilL: Date.now() + LOCK_TIME
+                        }
+                    }
+
+                    this.update(updates, err => {
+                        if (!err) resolve(true)
+                        else reject(err)
+                    })
+
+                }
+            })
+        }
+    }
+
+
+    mongoose.model('User', userSchema)    // 传入模型名字 Movie，具体的 Schema
+    ```
+    - 这样挂载到 入口文件？
+        ```js
+        // /server/index.js
+
+        const Koa = require('koa'
+        const mongoose = require('mongoose')
+        const app = new Koa()
+        const views = require('koa-views')
+        const { resolve } = require('path')
+        // const { connect, initSchemas } = require('./database/init')
+        const { connect, initSchemas, initAdmin } = require('./database/init')
+
+        ;(async () => {
+            await connect()     // 连接数据库
+
+            initSchemas()       // 初始化 schema
+
+            await initAdmin()   // ?????
+
+            // require('./tasks/movies')   // 执行任务：爬取电影数据，并存到数据库
+            // require('./tasks/douban_api')
+        })()
+
+        app.use(views(resolve(__dirname, './views'), {
+            extension: 'pug'
+        }))
+
+        app.use(async (ctx, next) => {
+            await ctx.render('index', {
+                you: 'Luke',
+                me: 'Scoot'
+            })
+        })
+
+        app.listen(2333)
+        ```
+- ## 8-6 创建电影分类以及初始化所有
+    - 本节目标
+        - 建立 一个电影 分类模型，让电影 和 电影分类 之间 建立一个关联关系
+        ```js
+        // /server/database/schema/category.js
+
+        // 电影分类模型
+
+        const mongoose = require('mongoose')      // 使用 mongoose 来建模
+        const Schema = mongoose.Schema      // 拿到建模工具
+        const ObjectID = Schema.Types.ObjectID
+
+        // 基于数据模型的定义
+        const categorySchema = new Schema({
+            name: {  // 增加一个 name 字段
+                unique: true,
+                type: String
+            }, 
+            movies: [{
+                type: ObjectID,
+                ref: 'Movie'     // 建立一个 引用关系，关联关系 关联表. 这里让它关联 Movie 表
+            }],
+            meta: {     // 描述
+                createdAt: {    // 这条数据被 创建时间
+                    type: Date,
+                    default: Date.now()
+                },
+                updateAt: {    // 更新时间
+                    type: Date,
+                    default: Date.now()
+                }
+            }
+        })
+
+        categorySchema.pre('save', function(next) {   // pre save 就是保存之前
+            if (this.isNew) {
+                this.meta.createdAt = this.meta.updateAt = Date.now()
+            } else {
+                this.meta.updateAt = Date.now()
+            }
+        })
+
+        mongoose.model('Category', categorySchema)    // mongoose.model 发布 model // 传入模型名字 Movie，具体的 Schema
+        ```
+    - 在 init.js 添加的代码
+        ```js
+        // /server/database/init.js
+
+        const glob = require('glob')    // 允许你用*号  这种匹配符号  来写一个匹配规则
+        const { resolve } = require('path')
+
+        exports.initSchemas = () => {      
+            // 这里吧所有的 schema 全部 require 进来就好了
+            // 因为每个 schema 都会发布 model: 都会自动执行 mongoose.model()
+
+            // 加载所有 schema 文件
+            glob.sync(resolve(__dirname, './schema', '**/*.js')).forEach(require)
+            // 拿到所有的 schema 之后，再 forEach(require) 逐个加载进来
+        }
+        ```
+    - 在 index.js 添加代码
+        ```js
+        // /server/index.js
+
+        const mongoose = require('mongoose')
+        const { connect, initSchemas } = require('./database/init')
+
+        ;(async () => {
+            await connect() // 连接数据库
+
+            initSchemas()   // 引入所有 数据库 schema
+
+            // 数据查询
+            // mongoose.model() 就能拿到 这个model
+            const Movie = mongoose.model('Movie')
+            const movies = await Movie.find({})
+            console.log(movies)
+        })()
+        ```
+    - 完整代码
+        ```js
+        // /server/database/init.js
+
+        const mongoose = require('mongoose')
+        const DATABASE_URL = 'mongodb://localhost/douban-trailer' // 数据库地址
+        // const DATABASE_URL = 'mongodb://127.0.0.1:27017/'
+        const glob = require('glob')    // 允许你用*号  这种匹配符号  来写一个匹配规则
+        const { resolve } = require('path')
+
+        mongoose.Promise = global.Promise               // 指定 Promise 是 node 原生 promise，而不是 mongoose 自带的 promise
+
+        function _connect() {
+            mongoose.connect(DATABASE_URL, { 
+                useNewUrlParser: true, 
+                useUnifiedTopology: true,
+            }, (err, connection) => {
+                if(err) {
+                    console.error(err)
+                    return
+                }    
+                // console.log('Connected to DB');
+            }).catch(err => console.log(err));
+        }
+
+        exports.connect = () => {      
+            let maxConnectTimes = 0
+
+            /* 为什么要返回 promise？
+            * 是为了 让我们 在外面，确保连到数据库之后，继续后面 的代码
+            */
+            return new Promise((resolve, reject) => {
+
+                // 暴露一个 connect 方法
+                if (process.env.NODE_ENV !== 'production') {    // 判断是不是 生产环境
+                    mongoose.set('debug', true)             // 打印日志内容
+                }
+            
+                _connect()
+            
+                mongoose.connection.on('disconnected', () => {   // 当断开连接时
+                    maxConnectTimes ++
+                    if (maxConnectTimes < 5) {
+                        _connect()
+                    } else {
+                        throw new Error('Disconnected: 数据库重连超过5次，并失败了')
+                        // console.log('Disconnected: 数据库重连超过5次，并失败了')
+                    }
+                })
+            
+                mongoose.connection.on('error', err => {
+
+                    maxConnectTimes ++
+                    if (maxConnectTimes < 5) {
+                        _connect()
+                    } else {
+                        // throw new Error('Error: 数据库重连超过5次，并失败了')
+                        console.log('Error: 数据库重连超过5次，并失败了')
+                        reject(err)
+                    }
+                })
+            
+                mongoose.connection.once('open', () => {
+                    console.log('MongoDB Connected Successfully !')
+                    resolve()
+                })
+
+            })
+        }
+
+
+        exports.initSchemas = () => {      
+            // 这里吧所有的 schema 全部 require 进来就好了
+            // 因为每个 schema 都会发布 model: 都会自动执行 mongoose.model()
+
+            // 加载所有 schema 文件
+            glob.sync(resolve(__dirname, './schema', '**/*.js')).forEach(require)   // 拿到所有的 schema 之后，再 forEach(require) 逐个加载进来
+        }
+        ```
+        ```js
+        // /server/index.js
+
+        const Koa = require('koa')
+        const mongoose = require('mongoose')
+        const app = new Koa()
+        const views = require('koa-views')
+        const { resolve } = require('path')
+        const { connect, initSchemas } = require('./database/init')
+
+        ;(async () => {
+            await connect()
+
+            initSchemas()
+
+            // 数据查询
+            // mongoose.model() 就能拿到 这个model
+            const Movie = mongoose.model('Movie')
+            const movies = await Movie.find({})
+
+            console.log(movies)
+        })()
+
+        app.use(views(resolve(__dirname, './views'), {
+            extension: 'pug'
+        }))
+
+        app.use(async (ctx, next) => {
+            await ctx.render('index', {
+                you: 'Luke',
+                me: 'Scoot'
+            })
+        })
+
+        app.listen(2333)
+        ```
+    - 执行代码 `node server`
+        ```shell
+        MongoDB Connected Successfully !
+        Mongoose: categories.ensureIndex({ name: 1 }, { unique: true, background: true })
+        Mongoose: movies.ensureIndex({ doubanID: 1 }, { unique: true, background: true })
+        Mongoose: users.ensureIndex({ username: 1 }, { unique: true, background: true })
+        (node:26295) DeprecationWarning: collection.ensureIndex is deprecated. Use createIndexes instead.
+        Mongoose: movies.find({}, { projection: {} })
+        [] ## 这里打印了 空数组，就证明 代码没有BUG
+        Mongoose: users.ensureIndex({ eamil: 1 }, { unique: true, background: true })
+        ```
+        - 由于数据库中没有 数据，所以这里 打印了  空数组
+        - 到这里，整个流程就跑通了
+
+- ## 8-7 向数据库导入爬到的电影数据
+    ```js
+    // /server/tasks/douban_api.js
+
+    const rp = require('request-promise-native')    // 引入发起请求的库.  request-promise-native 实际上就是 request 的上层封装
+    const mongoose = require('mongoose')        // 1.引入mongoose
+    const Movie = mongoose.model('Movie')       // 2.拿到 Movie 数据模型
+    const Category = mongoose.model('Category')
+
+
+    async function fetchMovie (item) {
+        const url = `http://api.douban.com/v2/movie/subject/${item.doubanID}?apikey=0df993c66c0c636e29ecbb5344252a4a`
+
+        let res = await rp(url)
+
+        try {
+            res = JSON.parse(res)
+        } catch(err) {
+            console.log(err)
+        }
+
+        return res
+    }
+
+    ;(async () => {
+        // let movies = [
+        //     {
+        //         doubanID: 27119724,
+        //         title: '小丑',
+        //         rate: 8.7,
+        //         poster: 'https://img9.doubanio.com/view/photo/l_ratio_poster/public/p2567198874.jpg'
+        //     },
+        //     {
+        //         doubanID: 26100958,
+        //         title: '复仇者联盟4：终局之战',
+        //         rate: 8.5,
+        //         poster: 'https://img9.doubanio.com/view/photo/l_ratio_poster/public/p2552058346.jpg'
+        //     }
+        // ]
+
+        // 3.把原本写死的数据 改成 从数据库查询的数据
+        let movies = await Movie.find({
+            // 满足下面几种条件的，说明数据不完整，我们可以重新再爬取一次
+            // 我们通过一个 $or 或 的条件
+            // 满足这么几种条件的数据 都可以被拿出来
+            $or: [
+                { summary: { $exists: false } },    // 这个字段没有，刚刚被插进去，还没有被精加工的
+                { summary: null },  // 第二种情况是 null 的情况
+                { title: '' },
+                { year: { $exists: false } },
+                { summary: '' }
+            ]
+        })
+
+
+        // 拿到数据之后
+
+        // 由于豆瓣 api 每天数据请求次数有限制，所以每次测试的时候 只跑一条数据
+        for (let i = 0; i < movies.length; i++) {
+        // for (let i = 0; i < [movies[0]].length; i++) {   // 这一句代码 等价于 下面一句
+        // for (let i = 0; i < 1; i++) {
+            let movie = movies[i]
+            let movieData = await fetchMovie(movie)     // 请求数据
+
+            if (movieData) {    // 如果成功拿到 数据
+                movie.tags = movieData.tags || []
+                movie.summary = movieData.summary || ''
+                movie.title = movieData.title || ''
+                movie.original_title = movieData.original_title || []   // 原始标题
+                movie.movieTypes = movieData.genres || []       // genres 电影类型
+                movie.year = movieData.year || '未知上映年份'
+
+                
+                // 对于 movieTypes  当一个电影类目创建之后，我们要把这个 ref 也指向这个 category
+                for (let i = 0; i < movie.movieTypes.length; i++) {
+                    let item = movie.movieTypes[i]
+
+                    let cat = await Category.findOne({      // 查询 电影分类数据库里 有没有这个电影
+                        name: item
+                    })                
+        
+                    // 如果不存在 这个电影分类
+                    if (!cat) {
+                        cat = new Category({
+                            name: item,             // 将该分类存入
+                            movies: [movie._id]      // 并将该 电影id 存入
+                        })
+                    } else {
+                        // 如果这个 电影分类 存在，我们再来判断一下 是否保存过 这部电影的id
+                        if (cat.movies.indexOf(movie._id) === -1) {
+                            cat.movie.push(movie._id)    // 如果不存在，则保存
+                        }
+                    }
+                    
+                    // await cat.save()    // 保存数据
+                    // 这里如果取消注释，不知道为什么 程序好像就被卡住了  不动了
+
+
+                    // 然后再检查 movie.category 
+                    if (!movie.category) {
+                        movie.category.push(cat._id)    // 如果为空，就将其 电影id 保存进去
+                    } else {
+                        // 如果不为空，我们就 就来检查一下，看看有没有 存过 当前的 category
+                        if (movie.category.indexOf(cat._id) === -1) {   // 如果没有
+                            movie.category.push(cat._id)
+                        }
+                        // 如果有的话，就不做任何处理
+                    }
+                }
+
+                // movie.movieTypes.forEach(async item => {
+                // })
+
+
+                // 以下是上映日期的处理
+                let dates = movieData.pubdates || []     // 拿到电影的上映日期
+                let pubdates = []   // 声明上映日期
+
+                dates.map(item => {
+                    if (item && item.split('(').length > 0) {
+                        let parts = item.split('(')
+                        let date = parts[0]
+                        let country = '未知'
+
+                        if (parts[1]) {
+                            country = parts[1].split(')')[0]
+                        }
+
+                        pubdates.push({
+                            date: new Date(date),
+                            country
+                        })
+                    }
+                })
+
+                movie.pubdate = pubdates
+            }
+
+            // console.log(typeof movie, movie)
+            await movie.save()
+        }
+    })()
+    ```
+
+# 第9章 实战篇 - 为网站增加路由与控制器层对外提供 API 服务
+- ## 9-1 Router 第二次迭代快速实现一个最小统计的api服务器
+    - 安装 `npm i koa-router`
+    - 1.Router 规则
+        ```js
+        // /server/routes/index.js
+
+        const Router = require('koa-router')
+        const mongoose = require('mongoose')
+        const router = new Router()
+
+
+        router.get('/movies/all', async (ctx, next) => {
+            const Movie = mongoose.model('Movie')
+            const movies = await Movie.find({}).sort({      // 拿到电影数据, 然后根据 创建时间 从最新到最旧 排序
+                'meta.createdAt': -1
+            })
+
+            // 排序之后的 movies 就把他挂到 ctx.body 进行返回
+            ctx.body = {
+                movies
+            }
+        })
+
+        // 电影详情
+        router.get('/movies/detail/:id', async (ctx, next) => {
+            const Movie = mongoose.model('Movie')
+            const id = ctx.params.id
+            const movie = await Movie.findOne({_id: id})
+
+            // 把拿到的数据结果, 挂载到 ctx.body 进行返回
+            ctx.body = {
+                movie
+            }
+        })
+
+        module.exports = router
+        ```
+    - 2.把 Router 规则 挂载到 入口文件 `/server/index.js` 里
+        ```js
+        // /server/index.js
+
+        const Koa = require('koa')
+        const mongoose = require('mongoose')
+        const app = new Koa()
+        const views = require('koa-views')
+        const { resolve } = require('path')
+        const { connect, initSchemas } = require('./database/init')
+        const router = require('./routes')
+
+        ;(async () => {
+            await connect()     // 连接数据库
+
+            initSchemas()       // 初始化 schema
+
+            // require('./tasks/movies')   // 执行任务：爬取电影数据，并存到数据库
+            // require('./tasks/douban_api')
+        })()
+
+        // 挂载路由
+        app
+            .use(router.routes())
+            .use(router.allowedMethods())   // 允许基本方法
+
+        app.use(views(resolve(__dirname, './views'), {
+            extension: 'pug'
+        }))
+
+        app.use(async (ctx, next) => {
+            await ctx.render('index', {
+                you: 'Luke',
+                me: 'Scoot'
+            })
+        })
+
+        app.listen(2333)
+        ```
+    - 3.测试验证
+        - `node server` 启动服务器
+        - 所有电影 路由
+            - `http://localhost:2333/movies/all`
+        - 详情页 路由
+            - `http://localhost:2333/movies/detail/5e2155d2e421626cef6fbaa4`
+
+
+- ## 9-2 第二次迭代了解koa-router的基本能力以及取舍套路
+    - 我们还可以通过 `ctx.path === '/movies` 也能获取 并 判断 他的请求路径
+        - 然后根据不同的路径，分配不同的 处理逻辑
+        - 但是，当路径规则变复杂之后，尤其是 要求判断是什么样的请求方法时，**`代码就变得不太好维护了`**
+        - 所以，最好的方法 还是用 第三方路由库，例如 `koa-router`
+    - 在上一节代码中
+        - 我们在 `routes/index.js` 里写了两个 路由规则
+        - 但是，在我们的项目中 如果有 三四十个 路由规则的话，如果我们都写在一个文件里，就会变得比较难以维护了
+            - 我们可以吧 文件拆开，利用 koa-router 生成多个 `router实例`，然后通过多个 router实例 来分配不同的 控制器
+            - 但是这样做 又会引发第三个问题，
+                - 如果这个请求 进来之后呢，我能够对这个 进来的参数 做一些处理、cookie 做一些认证、返回数据之前 对数据做一些加工，在 控制器 之前再加一些中间件，在这个 中间件 里做一些处理。加的这个中间件 koa-router 是支持的
+                - 那就算 是 koa-router 支持加这些中间件，如果是在 不同的 文件里面，以不同的 `router实例` 进行分配的话，文件数 多了之后 依然会比较麻烦
+
+    - koa-router 的基本用法
+        - 1.支持 连起来写 `router.get().post()`
+            ```js
+            router
+                .get('/movies/all', async (ctx, next) => {
+                // 处理逻辑
+                })
+                .post()
+            ```
+        - 2.可以带参数
+            ```js
+            router.get('/movies/all?abc=123', async (ctx, next) => {
+                // 处理逻辑
+            })
+            ```
+        - 3.多个路由 命中同一个 处理逻辑
+            ```js
+            router.get('/movies/all?abc=123', async (ctx, next) => {
+            router.get('/movies/all?abc=456', async (ctx, next) => {
+                // 处理逻辑
+            })
+            ```
+        - 4.路由 参数
+            ```js
+            router.get('/movie/:id', async (ctx, next) => {
+                const id = ctx.params.id    // 通过 ctx.params 获取路由参数
+            })
+            ```
+        - 5.多个 路由参数
+            ```js
+            router.get('/movie/:id/comments/:cid', async (ctx, next) => {
+                const id = ctx.params.id    // 通过 ctx.params 获取路由参数
+                const id = ctx.params.cid    // 通过 ctx.params 获取路由参数
+            })
+            ```
+        - 6.多个中间件
+            - 经过多个中间件的处理，我们在后面的中间件中，就能拿到前面 处理的结果
+            - 语法
+                ```js
+                router.get('/movies', (ctx, next)=>{}, (ctx, next)=>{} )    // 里面可以写多个中间件`
+                ```
+            - 示例
+                ```js
+                router.get('/movies/all', async (ctx, next) => {
+                    // 在这个中间件里，我们先查询 电影的类别
+                    const cats = await Category.find({})
+
+                    ctx.body = cats
+
+                    return next()   // 处理完后，往下调用 next()
+                }, async (ctx, next) => {
+                    const Movie = mongoose.model('Movie')
+                    const movies = await Movie.find({}).sort({      // 拿到电影数据, 然后根据 创建时间 从最新到最旧 排序
+                        'meta.createdAt': -1
+                    })
+
+                    // 排序之后的 movies 就把他挂到 ctx.body 进行返回
+                    ctx.body = {
+                        movies
+                    }
+                })
+                ```
+
+                6:00
+            
+- ## 9-3 通过装饰器来把路由进行拆分和继承
+- ## 9-4 结合decorator 对 koa-router 进行抽象封装支持路由空间
+- ## 9-5 分拆项目服务层与路由层对外暴露api服务
