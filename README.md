@@ -1,7 +1,7 @@
 # Node.js Koa2框架搭建电影预告片网站
 - Node.js Koa2 the movie trailer site
 
-- 视频课程出品时间：2018年
+- 视频课程出品时间：2018年 年初
 
 ----
 
