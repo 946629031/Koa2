@@ -8,6 +8,21 @@
 ## 服务器能力扩展
 - [Koa从零搭建之文件上传](https://juejin.im/post/5d81d443e51d45620d2cb98d)
 
+
+- [koa2学习笔记(一) 环境搭建](https://juejin.im/post/5cd10de8f265da03804383ea)
+- [koa2学习笔记(二) koa-router路由高级技巧](https://juejin.im/post/5cd11420f265da036d79d0f3)
+    - koa-router简单配置
+    - 配置路由层级
+    - router.use路由分层
+    - 动态路由参数
+    - 分割路由文件
+- [koa2学习笔记(三) async/await详解](https://juejin.im/post/5cd2c58d6fb9a032045962b5)
+- [koa2学习笔记(四) GET/POST请求讲解](https://juejin.im/post/5cd2d48c6fb9a0324c20d4eb)
+- [koa2学习笔记(五) Cookie使用](https://juejin.im/post/5cd4492ae51d456e5977b247)
+- [koa2学习笔记(六) 学会session登录](https://juejin.im/post/5cd5052451882535d06e5a3d)
+- [koa2学习笔记(七) koa-jwt鉴权](https://juejin.im/post/5cd6193451882568d36709ed)
+- [koa2学习笔记(八) koa全局异常处理](https://juejin.im/post/5cd8098c6fb9a032297b1c14)
+
 ----
 
 ## 课程大纲
@@ -4536,7 +4551,7 @@
             - 经过多个中间件的处理，我们在后面的中间件中，就能拿到前面 处理的结果
             - 语法
                 ```js
-                router.get('/movies', (ctx, next)=>{}, (ctx, next)=>{} )    // 里面可以写多个中间件`
+                router.get('/movies', (ctx, next)=>{}, (ctx, next)=>{} )    // 里面可以写多个中间件`
                 ```
             - 示例
                 ```js
