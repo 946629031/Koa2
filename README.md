@@ -1931,7 +1931,71 @@
             - koa，由于有语法特性，又加强了 异步编程模型，所以 整个 HTTP流 处理起来 就非常的灵活。
                 - 这是非常美妙的编程体验，不仅仅是写起来爽
                 - koa 中间件的模型，运行起来的过程 非常的清晰，无论是调试、捕捉异常、做加减法的维护 都非常的轻松
-                
+    - ### [理解Koa洋葱模型](https://juejin.im/entry/5d551264e51d453b5f1a047b)
+        ```
+
+        |                                                                                  |
+        |                              middleware 1                                        |
+        |                                                                                  |
+        |          +-----------------------------------------------------------+           |
+        |          |                                                           |           |
+        |          |                    middleware 2                           |           |
+        |          |                                                           |           |
+        |          |            +---------------------------------+            |           |
+        |          |            |                                 |            |           |
+        | action   |  action    |        middleware 3             |    action  |   action  |
+        | 001      |  002       |                                 |    005     |   006     |
+        |          |            |   action              action    |            |           |
+        |          |            |   003                 004       |            |           |
+        |          |            |                                 |            |           |
+        +---------------------------------------------------------------------------------->
+
+        |          |            |                                 |            |           |
+        |          |            |                                 |            |           |
+        |          |            +---------------------------------+            |           |
+        |          +-----------------------------------------------------------+           |
+        +----------------------------------------------------------------------------------+
+        ```
+        先写一段贯穿全文的koa的代码
+        ```js
+        const Koa = require('koa');
+        let app = new Koa();
+
+        const middleware1 = async (ctx, next) => { 
+            console.log(1); 
+            await next();  
+            console.log(6);   
+        }
+
+        const middleware2 = async (ctx, next) => { 
+            console.log(2); 
+            await next();  
+            console.log(5);   
+        }
+
+        const middleware3 = async (ctx, next) => { 
+            console.log(3); 
+            await next();  
+            console.log(4);   
+        }
+
+        app.use(middleware1);
+        app.use(middleware2);
+        app.use(middleware3);
+        app.use(async(ctx, next) => {
+            ctx.body = 'hello world'
+        })
+
+        app.listen(3001)
+
+        // 输出1，2，3，4，5，6
+        ```
+        await next()使每个middleware分成，前置操作，等待其他中间件操作可以观察到中间件的特性有：
+
+        - 上下文ctx
+        - await next()控制前后置操作
+        - 后置操作类似于数据解构-栈，先进后出
+
 - ## 4-4 koa2 espress 选型及小结
     - koa 是基于新的语法特性，实现了 promise 链的传递
     - 错误处理 也更友好
