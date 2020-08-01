@@ -3379,7 +3379,8 @@
                     |                                                                                    | |                                   |
                     └────────────────────────────────────────────────────────────────────────────────────┘ └───────────────────────────────────┘
                     ```
-                    [原图](./img/libuv-event-loop.jpg)，原链接 [Node 定时器详解 【阮一峰】](http://www.ruanyifeng.com/blog/2018/02/node-event-loop.html)
+                    ![原图](./img/libuv-event-loop.jpg)
+                    原链接 [Node 定时器详解 【阮一峰】](http://www.ruanyifeng.com/blog/2018/02/node-event-loop.html)
                     ```
                     名字解释: ↓↓↓↓
 
