@@ -3350,78 +3350,79 @@
                     └──┤      close callbacks      │
                        └───────────────────────────┘
                     ```
-```
-┌──────────────────────────────────────────────────────────────────┐ ┌───────────────────────────────────┐
-│                                                           libuv  | |                        JavaScript |
-│                                                                  | |   ┌───────────────────────────┐   |
-│                               ┌───────────────────────────┐      | |   │        setTimeout         │   |
-│ Run expired timers ````````┌─>│           timers          │``````|`|```|        setInterval        |   |
-│                            │  └─────────────┬─────────────┘      | |   └───────────────────────────┘   |
-│                            │  ┌─────────────┴─────────────┐      | |   ┌───────────────────────────┐   |
-│ Run completed I/O handlers`│``│   pending I/O callbacks   │``````|`|```│   some finished I/O work/ │   |
-│                            │  └─────────────┬─────────────┘      | |   │        I/O Errors         │   |
-│                            │  ┌─────────────┴─────────────┐      | |   └───────────────────────────┘   |
-│                            │  │       idle handlers       │      | |                                   |
-│                            │  └─────────────┬─────────────┘      | |                                   |
-│                            │  ┌─────────────┴─────────────┐      | |                                   |
-│ Some prep-work before `````│``│      prepare handlers     │      | |        ┌───────────────┐          |
-│ polling for I/O            │  └─────────────┬─────────────┘      | |        │   incoming:   │          |
-│                            │  ┌─────────────┴─────────────┐      | |        |  connections, │          |
-│ Wait for I/O to complete ``│``│          I/O Poll         │ <────|─|────────┤   data, etc.  │          |
-│                            │  └─────────────┬─────────────┘      | |        └───────────────┘          |
-│                            │  ┌─────────────┴─────────────┐      | |   ┌───────────────────────────┐   |
-│ Some checking stuff ```````│``│       check handlers      │``````|`|```│        setImmediate       │   |
-│ after polling for I/O      │  └─────────────┬─────────────┘      | |   └───────────────────────────┘   |
-│                            │  ┌─────────────┴─────────────┐      | |   ┌───────────────────────────┐   |
-│ Run any close handlers ````└──┤      close callbacks      │``````|`|```│ *.on('close'... handlers) │   |
-│                               └───────────────────────────┘      | |   └───────────────────────────┘   |
-|                                                                  | |                                   |
-|                                                                  | |                                   |
-└──────────────────────────────────────────────────────────────────┘ └───────────────────────────────────┘
-```
-```
-名字解释: ↓↓↓↓
+    ```
+    ┌──────────────────────────────────────────────────────────────────┐ ┌───────────────────────────────────┐
+    │                                                           libuv  | |                        JavaScript |
+    │                                                                  | |   ┌───────────────────────────┐   |
+    │                               ┌───────────────────────────┐      | |   │        setTimeout         │   |
+    │ Run expired timers ````````┌─>│           timers          │``````|`|```|        setInterval        |   |
+    │                            │  └─────────────┬─────────────┘      | |   └───────────────────────────┘   |
+    │                            │  ┌─────────────┴─────────────┐      | |   ┌───────────────────────────┐   |
+    │ Run completed I/O handlers`│``│   pending I/O callbacks   │``````|`|```│   some finished I/O work/ │   |
+    │                            │  └─────────────┬─────────────┘      | |   │        I/O Errors         │   |
+    │                            │  ┌─────────────┴─────────────┐      | |   └───────────────────────────┘   |
+    │                            │  │       idle handlers       │      | |                                   |
+    │                            │  └─────────────┬─────────────┘      | |                                   |
+    │                            │  ┌─────────────┴─────────────┐      | |                                   |
+    │ Some prep-work before `````│``│      prepare handlers     │      | |        ┌───────────────┐          |
+    │ polling for I/O            │  └─────────────┬─────────────┘      | |        │   incoming:   │          |
+    │                            │  ┌─────────────┴─────────────┐      | |        |  connections, │          |
+    │ Wait for I/O to complete ``│``│          I/O Poll         │ <────|─|────────┤   data, etc.  │          |
+    │                            │  └─────────────┬─────────────┘      | |        └───────────────┘          |
+    │                            │  ┌─────────────┴─────────────┐      | |   ┌───────────────────────────┐   |
+    │ Some checking stuff ```````│``│       check handlers      │``````|`|```│        setImmediate       │   |
+    │ after polling for I/O      │  └─────────────┬─────────────┘      | |   └───────────────────────────┘   |
+    │                            │  ┌─────────────┴─────────────┐      | |   ┌───────────────────────────┐   |
+    │ Run any close handlers ````└──┤      close callbacks      │``````|`|```│ *.on('close'... handlers) │   |
+    │                               └───────────────────────────┘      | |   └───────────────────────────┘   |
+    |                                                                  | |                                   |
+    |                                                                  | |                                   |
+    └──────────────────────────────────────────────────────────────────┘ └───────────────────────────────────┘
+    ```
+    ```
+    名字解释: ↓↓↓↓
 
-poll 轮询
+    poll 轮询
 
-run expired timers  <:::>  运行过期的计时器
+    run expired timers  <:::>  运行过期的计时器
 
-run completed I/O handlers  <:::>  运行已完成的I/O处理程序
+    run completed I/O handlers  <:::>  运行已完成的I/O处理程序
 
-some prep-work before polling for I/O  <:::>  在轮询I/O之前做一些准备工作
+    some prep-work before polling for I/O  <:::>  在轮询I/O之前做一些准备工作
 
-wait for I/O to complete  <:::>  等待I/O完成
+    wait for I/O to complete  <:::>  等待I/O完成
 
-some checking stuff after polling for I/O  <:::>  在轮询I/O之后做一些检查工作
+    some checking stuff after polling for I/O  <:::>  在轮询I/O之后做一些检查工作
 
-run any close handlers  <:::>  运行任何关闭的处理程序
-```
-                    ![原图](./img/libuv-event-loop.jpg)
-                    原链接 [Node 定时器详解 【阮一峰】](http://www.ruanyifeng.com/blog/2018/02/node-event-loop.html)
+    run any close handlers  <:::>  运行任何关闭的处理程序
+    ```
 
-                    - 它把 idle, prepare 并成了一个，而且 拿掉了 uv__update_time(), 整理成了 6个阶段
-                    - 事件循环 6个阶段
-                        - #### 第一阶段：timmer
-                            - `setTimeout, setInterval` 在这个阶段被执行。这个阶段 对应的 源代码 就是 `uv__run_timers()`
-                        - #### 第二阶段：pending callbacks (I/O callbacks) 
-                            - 执行一些错误处理，如 socket , stream , TCP , Pipe。这个阶段 对应的 源代码 就是 `uv__run_pending`
-                        - #### 第三阶段：idle, prepare 阶段
-                        - #### 第四阶段：poll 轮循阶段
-                            - 向系统去获取 新的 I/O 事件，执行对应的 I/O 回调
-                                - 首先他会来处理 到期的定时器 的回调
-                                - 然后处理 poll 队列中的回调
-                                - **`直到队列中的回调 全部被清空，或者达到处理上限`**
-                            - 如果队列不为空的话，刚好有 setImmediate 那么他就会终止当前 poll 阶段，前往 **`check阶段`**
-                            - 如果没有 setImmediate 的话，node.js 会去查看有没有 定时器任务到期了
-                                - 如果有的话，就前往 **`timmer阶段`** 来执行 `定时器的回调`
-                        - #### 第五阶段：check 阶段
-                            - 在 check 阶段 会执行 `Immediate`回调，而且 setImmediate回调 只能在 **`check阶段`** 来执行
-                        - #### 第六阶段：close callbacks 阶段
-                            - 执行 `on('close')` 这样一个结束的回调
-                    - 基本上事件循环是 **`按照这个模型顺序执行的`**，但是有的时候 会被外界 **`事件所触发 或者 显示调用`** 而触发
-                    - process.nextTick 
-                        - 是在任意两个阶段中间，只要有 `process.nextTick` 还未被执行，那么就优先执行他的回调。
-                        - `Promise.resolve()` 是仅次于 `process.nextTick` 优先级的
+    ![原图](./img/libuv-event-loop.jpg)
+    原链接 [Node 定时器详解 【阮一峰】](http://www.ruanyifeng.com/blog/2018/02/node-event-loop.html)
+
+    - 它把 idle, prepare 并成了一个，而且 拿掉了 uv__update_time(), 整理成了 6个阶段
+    - 事件循环 6个阶段
+        - #### 第一阶段：timmer
+            - `setTimeout, setInterval` 在这个阶段被执行。这个阶段 对应的 源代码 就是 `uv__run_timers()`
+        - #### 第二阶段：pending callbacks (I/O callbacks) 
+            - 执行一些错误处理，如 socket , stream , TCP , Pipe。这个阶段 对应的 源代码 就是 `uv__run_pending`
+        - #### 第三阶段：idle, prepare 阶段
+        - #### 第四阶段：poll 轮循阶段
+            - 向系统去获取 新的 I/O 事件，执行对应的 I/O 回调
+                - 首先他会来处理 到期的定时器 的回调
+                - 然后处理 poll 队列中的回调
+                - **`直到队列中的回调 全部被清空，或者达到处理上限`**
+            - 如果队列不为空的话，刚好有 setImmediate 那么他就会终止当前 poll 阶段，前往 **`check阶段`**
+            - 如果没有 setImmediate 的话，node.js 会去查看有没有 定时器任务到期了
+                - 如果有的话，就前往 **`timmer阶段`** 来执行 `定时器的回调`
+        - #### 第五阶段：check 阶段
+            - 在 check 阶段 会执行 `Immediate`回调，而且 setImmediate回调 只能在 **`check阶段`** 来执行
+        - #### 第六阶段：close callbacks 阶段
+            - 执行 `on('close')` 这样一个结束的回调
+    - 基本上事件循环是 **`按照这个模型顺序执行的`**，但是有的时候 会被外界 **`事件所触发 或者 显示调用`** 而触发
+    - process.nextTick 
+        - 是在任意两个阶段中间，只要有 `process.nextTick` 还未被执行，那么就优先执行他的回调。
+        - `Promise.resolve()` 是仅次于 `process.nextTick` 优先级的
 
 
         ```c
