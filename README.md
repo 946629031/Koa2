@@ -250,10 +250,10 @@
                 console.log(err)
             })
         ```
-        - 虽然这种写法 有点冗长，但是也没有什么弊端
+        - 虽然这种写法 有点冗长，但是也没有什么弊端
     - ### 3.现在 util 的 promisify
         - Node.js 进入 v8.x 版本以后
-        - 我们就可以使用 nodejs util 模块提供的 promisify 让我们可以轻易的 包装一个 回调式的 Api ，让它直接支持 promise
+        - 我们就可以使用 nodejs util 模块提供的 promisify 让我们可以轻易的 包装一个 回调式的 Api ，让它直接支持 promise
         ```js
         const fs = require('fs')
         const util = require('util')
@@ -275,7 +275,7 @@
                 - 后面的这个 () 才是传参数
         - 总结
             - 优点：减少了代码量。将原来 promise 方法中的 20行代码，减少到 10行
-            - 在项目中遇到有 **回调处理异步的场景**，推荐大家 使用这种 promisify，来完成 从回调到 向promise 迁移到工作
+            - 在项目中遇到有 **回调处理异步的场景**，推荐大家 使用这种 promisify，来完成 从回调到 向promise 迁移到工作
 
 
 - ## 1-4 使用babel 编译es7 async function
@@ -301,7 +301,7 @@
         - 但是，也带来一些问题
             - 当你的运行环境不支持 这些前卫的新语法时，就会导致无法正确运行代码。
             - 如：你在node v4.x 或者 v6.x 版本中使用时
-        - 所以这个时候，就需要用到 babel 来编译, 将这些 旧版本不支持的新语法，编译成 他们能够识别执行的语法
+        - 所以这个时候，就需要用到 babel 来编译, 将这些 旧版本不支持的新语法，编译成 他们能够识别执行的语法
 
 # 第2章 必会 ES6-7 语法特性与规范
 - ## 2-1 generator 生成器函数 Iterator迭代器？
@@ -535,7 +535,7 @@
         - 下面我们用 run() 函数 来模拟一下，co库 的内部执行过程，让大家直观的理解 co库 的内部是如何运作的
         ```js
         function run (generator) {
-            const iterator = generator()        // generator 执行的结果 是最终生成了一个 iterator 迭代器
+            const iterator = generator()        // generator 执行的结果 是最终生成了一个 iterator 迭代器
             const it = iterator.next()
             const promise = it.value
 
@@ -763,7 +763,7 @@
             ```
         - 存在的问题
             - 最新的几个 Node.js 版本 都没有实现 `import` 这个关键字，不支持
-            - 先来看个 案例
+            - 先来看个 案例
                 ```js
                 // demo.js
 
@@ -1086,7 +1086,7 @@
         - 其中 响应，可以返回 html页面、JSON 文本
         - 在 `解析请求` 和 `响应请求` 之间 会有一些 第三方的 `中间件`
             - 如 日志、表单解析... 来增强服务能力
-        - 执行上下文
+        - 执行上下文
             - 可以理解为 HTTP 请求周期内的 `作用域环境`
             - 来托管请求响应 和 中间件，方便它们之间 互相访问
         - 应用服务对象
@@ -1927,7 +1927,7 @@
             - express，是这种常规的编程模型
             - koa，是 async function 这种新语言特性
         - 3.中间件
-            - express，是单向流动。而且需要借助事件机制，才能保障 一个数据进去之后 能够返程流动
+            - express，是单向流动。而且需要借助事件机制，才能保障 一个数据进去之后 能够返程流动
             - koa，由于有语法特性，又加强了 异步编程模型，所以 整个 HTTP流 处理起来 就非常的灵活。
                 - 这是非常美妙的编程体验，不仅仅是写起来爽
                 - koa 中间件的模型，运行起来的过程 非常的清晰，无论是调试、捕捉异常、做加减法的维护 都非常的轻松
@@ -2170,7 +2170,7 @@
         }
         ```
 
-    - ### 3.jade
+    - ### 3.jade
         - [《带你学习Jade模板引擎》 - 慕课网](https://www.imooc.com/learn/259)
 
 - ## 5-5 模版引擎中间件 集成模板引擎到koa 搭建初始模板目录
@@ -2596,7 +2596,7 @@
         - 数据服务
 
         - Koa2
-            - 父子进程通信
+            - 父子进程通信
 
         - 数据爬取
             - 储存
@@ -3082,7 +3082,7 @@
     - 为啥要另外上传到 **`对象存储`** 上？
         - 因为网络资源 有时候会不稳定，现在能访问，过一会就可能 无法访问了，**`数据源不可靠`**
         - 所以，我们要把它下载下来，保存在 自己可控 的地方
-        - 但是，由于视频什么的，文件体积非常大，保存到服务器中，又很占地方
+        - 但是，由于视频什么的，文件体积非常大，保存到服务器中，又很占地方
         - 所以，我们把 数据 上传到第三方的 **`对象存储`** 是最合适的
     - ### 怎么上传？
         - 1.我们先执行代码 `/server/crawler/movie.js` 和 `/server/tasks/movies.js`
@@ -3315,7 +3315,7 @@
             ```
             - 这8个函数 可以看作是 头尾相连 的阶段，它们串起来 就组成了 **`事件循环的完整过程`**
                 - 所谓的循环 就是这个 while 的循环了
-                - 所谓的处理顺序 无非就是这几个 函数调用来 调用去
+                - 所谓的处理顺序 无非就是这几个 函数调用来 调用去
                 - 事件循环 (event loop) 每次跑一圈 都是经过这里面的几个阶段
             - 但是 这几个函数是做什么的呢？
                 - https://nodejs.org/en/docs/guides/event-loop-timers-and-nexttick/
@@ -3325,7 +3325,7 @@
                     - 一旦 某个操作完成了 比如说 文件读取到了，内核 就会通知 node.js 在合适的时机 去执行一个回调函数。
                     - 而这个时机，就是 我们上面提到的 uv_run() 里的 8个函数
                 - ### 事件循环说明 Event Loop Explained
-                    - 这个 8个函数 有自己的执行顺序
+                    - 这个 8个函数 有自己的执行顺序
                     - 这个顺序 就是 下面这张图
                     - node.js 在启动的时候会 **`初始化事件循环`**
                     - 然后 处理在 node.js 中运行的代码，这些代码中 包含各种 api 的调用
@@ -3350,6 +3350,53 @@
                     └──┤      close callbacks      │
                        └───────────────────────────┘
                     ```
+                    ```
+                    ┌────────────────────────────────────────────────────────────────────────────────────────┐ ┌──────────────────────────────────────────────────────┐
+                    │                                                                                 libuv  | |                                           JavaScript |
+                    │                                                                                        | |           ┌───────────────────────────┐              |
+                    │                               ┌───────────────────────────┐                            | |           │        setTimeout         │              |
+                    │ Run expired timers         ┌─>│           timers          │````````````````````````````|`|```````````|        setInterval        |              |
+                    │                            │  └─────────────┬─────────────┘                            | |           └───────────────────────────┘              |
+                    │                            │  ┌─────────────┴─────────────┐                            | |           ┌───────────────────────────┐              |
+                    │ Run completed I/O handlers │  │   pending I/O callbacks   │````````````````````````````|`|```````````│   some finished I/O work/ │              |
+                    │                            │  └─────────────┬─────────────┘                            | |           │        I/O Errors         │              |
+                    │                            │  ┌─────────────┴─────────────┐                            | |           └───────────────────────────┘              |
+                    │                            │  │       idle handlers       │                            | |                                                      |
+                    │                            │  └─────────────┬─────────────┘                            | |                                                      |
+                    │                            │  ┌─────────────┴─────────────┐                            | |                                                      |
+                    │ Some prep-work before      │  │      prepare handlers     │                            | |                                                      |
+                    │ polling for I/O            │  └─────────────┬─────────────┘      ┌───────────────┐     | |                                                      |
+                    │                            │  ┌─────────────┴─────────────┐      │   incoming:   │     | |                                                      |
+                    │ Wait for I/O to complete   │  │          I/O Poll         │<─────┤  connections, │     | |                                                      |
+                    │                            │  └─────────────┬─────────────┘      │   data, etc.  │     | |                                                      |
+                    │                            │  ┌─────────────┴─────────────┐      └───────────────┘     | |           ┌───────────────────────────┐              |
+                    │ Some checking stuff        │  │       check handlers      │````````````````````````````|`|```````````│        setImmediate       │              |
+                    │ after polling for I/O      │  └─────────────┬─────────────┘                            | |           └───────────────────────────┘              |
+                    │                            │  ┌─────────────┴─────────────┐                            | |           ┌───────────────────────────┐              |
+                    │ Run any close handlers     └──┤      close callbacks      │````````````````````````````|`|```````````│ *.on('close'... handlers) │              |
+                    │                               └───────────────────────────┘                            | |           └───────────────────────────┘              |
+                    |                                                                                        | |                                                      |
+                    |                                                                                        | |                                                      |
+                    └────────────────────────────────────────────────────────────────────────────────────────┘ └──────────────────────────────────────────────────────┘
+                    ```
+                    ```
+                    名字解释: ↓↓↓↓
+
+                    poll 轮询
+
+                    run expired timers  <:::>  运行过期的计时器
+                    
+                    run completed I/O handlers  <:::>  运行已完成的I/O处理程序
+                    
+                    some prep-work before polling for I/O  <:::>  在轮询I/O之前做一些准备工作
+                    
+                    wait for I/O to complete  <:::>  等待I/O完成
+                    
+                    some checking stuff after polling for I/O  <:::>  在轮询I/O之后做一些检查工作
+                    
+                    run any close handlers  <:::>  运行任何关闭的处理程序
+                    ```
+
                     - 它把 idle, prepare 并成了一个，而且 拿掉了 uv__update_time(), 整理成了 6个阶段
                     - 事件循环 6个阶段
                         - #### 第一阶段：timmer
@@ -3362,7 +3409,7 @@
                                 - 首先他会来处理 到期的定时器 的回调
                                 - 然后处理 poll 队列中的回调
                                 - **`直到队列中的回调 全部被清空，或者达到处理上限`**
-                            - 如果队列不为空的话，刚好有 setImmediate 那么他就会终止当前 poll 阶段，前往 **`check阶段`**
+                            - 如果队列不为空的话，刚好有 setImmediate 那么他就会终止当前 poll 阶段，前往 **`check阶段`**
                             - 如果没有 setImmediate 的话，node.js 会去查看有没有 定时器任务到期了
                                 - 如果有的话，就前往 **`timmer阶段`** 来执行 `定时器的回调`
                         - #### 第五阶段：check 阶段
@@ -3507,7 +3554,7 @@
             - `setTimeout, setInterval` 都会被在这个 **`timers阶段`** 注册
             - 定时器为零的 会被立刻执行 `setTimeout(() => {}, 0)`
             - 定时器 没到期的，会被暂时搁置，直接进入下一个阶段
-        - 4.Poll阶段
+        - 4.Poll阶段
             - 前面 `timers阶段` 走完后, 进入 Poll阶段，**`I/O 操作`** 都会在这个阶段 执行
             - 所以两个 `readFile()` 会被开始执行
         - 5.当 poll队列 被清空之后，发现有 **`setImmediate 回调函数`** , 然后执行 **`setImmediate`**
@@ -3736,7 +3783,7 @@
     - 概念
         - 数据库驱动：mySQL, Orcale 这些关系型数据库, 针对不同的语言 都有对应的驱动实现 如 Java Ruby...
         - 在 MogoDB 里面，我们使用 Mongoose 作为数据库驱动
-    - 在上一节，我们简单的把 连接、插入数据 的流程跑通了，但是 有些概念还是 不清楚
+    - 在上一节，我们简单的把 连接、插入数据 的流程跑通了，但是 有些概念还是 不清楚
     - 概念
         ```
         MongoDB
@@ -3860,7 +3907,7 @@
     // /server/database/schema/movie.js
 
     const mongoose = require('mongoose')      // 使用 mongoose 来建模
-    const Schema = mongoose.Schema      // 拿到建模工具
+    const Schema = mongoose.Schema      // 拿到建模工具
     const { Mixed, ObjectID } = Schema.Types
 
     // 基于数据模型的定义
@@ -3895,7 +3942,7 @@
         tags: [String],        // 标签
 
         meta: {     // 描述
-            createdAt: {    // 这条数据被 创建时间
+            createdAt: {    // 这条数据被 创建时间
                 type: Date,
                 default: Date.now()
             },
@@ -3938,7 +3985,7 @@
 
     const mongoose = require('mongoose')      // 使用 mongoose 来建模
     const bcrypt = require('bcrypt')        // bcrypt 加密库 // 如果是比较老的版本 node ，就用 bcryptjs
-    const Schema = mongoose.Schema      // 拿到建模工具
+    const Schema = mongoose.Schema      // 拿到建模工具
     const { Mixed, ObjectID } = Schema.Types
     const SALT_WORK_FACTOR = 10
     const MAX_LOGIN_ATTEMPTS = 5            // 最大登陆失败次数
@@ -3968,7 +4015,7 @@
         lockUntil: Number,  // 如果登陆超过最大失败次数，记录 账户锁定到什么时候. 单位: ms
 
         meta: {     // 描述
-            createdAt: {    // 这条数据被 创建时间
+            createdAt: {    // 这条数据被 创建时间
                 type: Date,
                 default: Date.now()
             },
@@ -4007,7 +4054,7 @@
         if (!this.isModified('password')) return next()  // 检查 password 是否更改，如果没有更改了 直接跳过
 
         // bcrypt 加密库
-        // SALT_WORK_FACTOR 这个值是一个产量，这个值越大 构建对盐的复杂度 越高，消耗的计算机 算力越多
+        // SALT_WORK_FACTOR 这个值是一个产量，这个值越大 构建对盐的复杂度 越高，消耗的计算机 算力越多
         bcrypt.genSalt(SALT_WORK_FACTOR, (err, salt) => {
             if (err) return next(err)      // 如果出错了 就跳过
 
@@ -4136,7 +4183,7 @@
         // 电影分类模型
 
         const mongoose = require('mongoose')      // 使用 mongoose 来建模
-        const Schema = mongoose.Schema      // 拿到建模工具
+        const Schema = mongoose.Schema      // 拿到建模工具
         const ObjectID = Schema.Types.ObjectID
 
         // 基于数据模型的定义
@@ -4147,10 +4194,10 @@
             }, 
             movies: [{
                 type: ObjectID,
-                ref: 'Movie'     // 建立一个 引用关系，关联关系 关联表. 这里让它关联 Movie 表
+                ref: 'Movie'     // 建立一个 引用关系，关联关系 关联表. 这里让它关联 Movie 表
             }],
             meta: {     // 描述
-                createdAt: {    // 这条数据被 创建时间
+                createdAt: {    // 这条数据被 创建时间
                     type: Date,
                     default: Date.now()
                 },
@@ -4572,9 +4619,9 @@
     - 在上一节代码中
         - 我们在 `routes/index.js` 里写了两个 路由规则
         - 但是，在我们的项目中 如果有 三四十个 路由规则的话，如果我们都写在一个文件里，就会变得比较难以维护了
-            - 我们可以吧 文件拆开，利用 koa-router 生成多个 `router实例`，然后通过多个 router实例 来分配不同的 控制器
+            - 我们可以吧 文件拆开，利用 koa-router 生成多个 `router实例`，然后通过多个 router实例 来分配不同的 控制器
             - 但是这样做 又会引发第三个问题，
-                - 如果这个请求 进来之后呢，我能够对这个 进来的参数 做一些处理、cookie 做一些认证、返回数据之前 对数据做一些加工，在 控制器 之前再加一些中间件，在这个 中间件 里做一些处理。加的这个中间件 koa-router 是支持的
+                - 如果这个请求 进来之后呢，我能够对这个 进来的参数 做一些处理、cookie 做一些认证、返回数据之前 对数据做一些加工，在 控制器 之前再加一些中间件，在这个 中间件 里做一些处理。加的这个中间件 koa-router 是支持的
                 - 那就算 是 koa-router 支持加这些中间件，如果是在 不同的 文件里面，以不同的 `router实例` 进行分配的话，文件数 多了之后 依然会比较麻烦
 
     - koa-router 的基本用法
