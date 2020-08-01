@@ -3379,8 +3379,6 @@
                     |                                                                                    | |                                   |
                     └────────────────────────────────────────────────────────────────────────────────────┘ └───────────────────────────────────┘
                     ```
-                    ![原图](./img/libuv-event-loop.jpg)
-                    原链接 [Node 定时器详解 【阮一峰】](http://www.ruanyifeng.com/blog/2018/02/node-event-loop.html)
                     ```
                     名字解释: ↓↓↓↓
 
@@ -3398,6 +3396,8 @@
                     
                     run any close handlers  <:::>  运行任何关闭的处理程序
                     ```
+                    ![原图](./img/libuv-event-loop.jpg)
+                    原链接 [Node 定时器详解 【阮一峰】](http://www.ruanyifeng.com/blog/2018/02/node-event-loop.html)
 
                     - 它把 idle, prepare 并成了一个，而且 拿掉了 uv__update_time(), 整理成了 6个阶段
                     - 事件循环 6个阶段
