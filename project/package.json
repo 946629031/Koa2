@@ -24,7 +24,7 @@
     "koa-session": "^5.12.3",
     "koa-views": "^6.2.1",
     "mongoose": "^5.8.7",
-    "nanoid": "^2.1.9",
+    "nanoid": "^3.1.31",
     "node-fetch": "^2.6.0",
     "nodemon": "^2.0.2",
     "pug": "^2.0.4",
